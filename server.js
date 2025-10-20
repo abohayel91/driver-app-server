@@ -43,7 +43,8 @@ function requireAuth(req, res, next) { if (isAuthed(req)) return next(); return 
 app.use(express.static(path.join(__dirname, "public")));
 
 // Admin auth routes
-app.get("/admin/login", (req, res) => { res.sendFile(path.join(__dirname, "public", "admin", "login.html")); });
+app.get("/admin", requireAuth, (req, res) => { res.sendFile(path.join(__dirname, "admin", "index.html")); });
+
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) { req.session.authed = true; return res.redirect("/admin"); }
