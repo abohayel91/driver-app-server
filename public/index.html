@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALSAQQAF LOGISTICS — Driver Application</title>
+<link rel="icon" href="/favicon.png">
+<style>
+body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0f172a;color:#e5e7eb}
+.container{max-width:900px;margin:24px auto;background:#0b1224;border:1px solid #1f2a44;border-radius:16px;overflow:hidden}
+.header{padding:16px 20px;background:linear-gradient(135deg,#1e40af,#1e3a8a)}
+.header img{height:60px;display:block;margin:auto;filter:drop-shadow(0 0 10px rgba(255,255,255,.9))}
+h1{margin:10px 0 0;text-align:center}
+form{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+form label{font-size:12px;opacity:.8}
+input,select{padding:10px;border-radius:10px;border:1px solid #243253;background:#0b1736;color:#fff}
+button{grid-column:1 / -1;padding:12px;border-radius:10px;border:none;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
+@media (max-width:700px){form{grid-template-columns:1fr}}
+</style></head><body>
+<div class="container">
+  <div class="header"><img src="/logo.png" alt="ALSAQQAF LOGISTICS LLC"></div>
+  <form id="appForm">
+    <div><label>First Name*</label><input name="firstName" required></div>
+    <div><label>Last Name*</label><input name="lastName" required></div>
+    <div><label>Email*</label><input type="email" name="email" required></div>
+    <div><label>Phone*</label><input name="phone" required></div>
+    <div><label>CDL Class</label><input name="cdlClass"></div>
+    <div><label>Driving Experience</label><input name="drivingExperience"></div>
+    <div style="grid-column:1 / -1"><label>Current Address</label><input name="currentAddress"></div>
+    <div><label>City</label><input name="currentCity"></div>
+    <div><label>State</label><input name="currentState"></div>
+    <div><label>ZIP</label><input name="currentZip"></div>
+    <div><label>Emergency Name</label><input name="emergencyName"></div>
+    <div><label>Emergency Phone</label><input name="emergencyPhone"></div>
+    <div><label>Emergency Email</label><input type="email" name="emergencyEmail"></div>
+    <button type="submit">Submit Application</button>
+  </form>
+</div>
+<script>
+const form = document.getElementById('appForm');
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form).entries());
+  const r = await fetch('/api/applications', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  if(r.ok){ alert('Application submitted!'); form.reset(); } else { const j = await r.json().catch(()=>({})); alert('Error: ' + (j.error||r.status)); }
+});
+</script>
+</body></html>
