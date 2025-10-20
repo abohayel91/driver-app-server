@@ -1,20 +1,478 @@
-<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width'>
-<title>Admin — ALSAQQAF</title><link rel="icon" href="/favicon.png"></head>
-<body style="font-family:system-ui;margin:0;background:#0f172a">
-<div style="max-width:1150px;margin:30px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)">
-<header style="background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;padding:24px;display:flex;align-items:center;gap:12px;justify-content:space-between">
-<div style="display:flex;align-items:center;gap:12px"><img src="/logo.png" style="height:48px"><div><div style="font-weight:800">ALSAQQAF LOGISTICS LLC — Admin Dashboard</div><small>View applications and download PDFs</small></div></div>
-<form method="POST" action="/admin/logout"><button type="submit" style="background:#dc2626;color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer">Logout</button></form>
-</header>
-<main style="padding:24px"><div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><input id="q" placeholder="Search by name or email" style="padding:10px;border:2px solid #e5e7eb;border-radius:10px;width:260px"><button onclick="loadApps()" style="background:#1e40af;color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer">Refresh</button></div>
-<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Date</th><th align="left">Name</th><th align="left">Email</th><th align="left">Phone</th><th align="left">Status</th><th align="left">PDF</th></tr></thead><tbody id="rows"></tbody></table></main>
-<footer style="padding:16px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;color:#6b7280">Admin • <a href="/" target="_blank">Open Driver Form</a></footer>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ALSAQQAF LOGISTICS LLC — Admin</title>
+<link rel="icon" href="/favicon.png" />
+<style>
+  :root{
+    --bg1:#0d1b3d; --bg2:#0a1740;
+    --panel:#0b1224; --card:#0c1a3a;
+    --text:#e8eefc; --muted:#bcd0ff; --accent:#4f83ff;
+    --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+    --pill:#182b55; --line:#1e2f5b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+    color:var(--text);
+    background: radial-gradient(1200px 800px at 20% -10%, #18346b 0%, #0a1430 45%), linear-gradient(160deg, var(--bg1), var(--bg2));
+    min-height:100vh;
+  }
+  .wrap{max-width:1200px; margin:24px auto 80px; padding:0 16px}
+  /* Header logo centered with glow */
+  .brand{
+    display:flex; align-items:center; justify-content:center; padding:18px 0 10px;
+  }
+  .brand img{
+    max-width:360px; width:52vw; height:auto;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,.85));
+  }
+  /* Tabs (scroll away with page) */
+  .tabs{
+    display:flex; gap:10px; flex-wrap:wrap;
+    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0));
+    padding:12px; border-radius:14px;
+    position:relative; top:0; z-index:10;
+  }
+  .tab{
+    padding:10px 14px; border-radius:999px; cursor:pointer; user-select:none;
+    background:var(--pill); color:var(--muted); border:1px solid var(--line);
+    transition:all .15s ease;
+  }
+  .tab:hover{ transform:translateY(-1px); color:#fff; }
+  .tab.active{ background:var(--accent); color:#fff; border-color:transparent; }
+
+  /* Panels */
+  .panel{ display:none; margin-top:16px; }
+  .panel.active{ display:block; }
+
+  /* Cards / grids */
+  .cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media (max-width:980px){ .cards{ grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .cards{ grid-template-columns:1fr;} }
+
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid var(--line); border-radius:14px; padding:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .card h3{ margin:0 0 6px; font-size:14px; color:var(--muted); font-weight:700; letter-spacing:.02em }
+  .card .big{ font-size:28px; font-weight:800; }
+
+  /* Table */
+  .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:6px 0 10px }
+  .toolbar input, .toolbar select{
+    background:#0b1736; color:var(--text);
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+  }
+  .table{
+    width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px;
+    border:1px solid var(--line);
+  }
+  .table th, .table td{
+    text-align:left; padding:12px 10px; border-bottom:1px solid var(--line);
+  }
+  .table th{
+    background:rgba(255,255,255,.04); text-transform:uppercase; letter-spacing:.06em; font-size:12px; color:var(--muted);
+  }
+  .status{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; }
+  .status.pending{ background:#1e293b; color:#f8fafc; border:1px solid #324463; }
+  .status.approved{ background:#053a2c; color:#34d399; border:1px solid #0a6a54; }
+  .status.rejected{ background:#3b0f14; color:#fb7185; border:1px solid #7f1d1d; }
+
+  .btn{
+    background:var(--accent); color:#fff; border:none; border-radius:10px;
+    padding:8px 12px; cursor:pointer; font-weight:700;
+  }
+  .btn.secondary{ background:#1f2f57 }
+  .btn.danger{ background:#b91c1c }
+  .btn.warning{ background:#b45309 }
+  .btn:disabled{ opacity:.5; cursor:not-allowed }
+
+  /* Modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center; padding:16px; z-index:50;
+  }
+  .modal{ background:#0d1a3b; border:1px solid var(--line); border-radius:16px; max-width:720px; width:100%; padding:18px; }
+  .modal h3{ margin:0 0 10px }
+  .modal .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  @media (max-width:640px){ .modal .grid{ grid-template-columns:1fr } }
+  .close-x{ float:right; cursor:pointer; opacity:.7 }
+
+  /* Analytics chart canvas card */
+  .chart-wrap{ padding:10px; height:320px }
+  canvas{ width:100%; height:100%; display:block }
+
+  /* Footer */
+  .footer{
+    text-align:center; color:var(--muted); margin:28px 0 12px; font-size:13px;
+    opacity:.9;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Centered logo with glow -->
+    <div class="brand">
+      <img src="/logo.png" alt="ALSAQQAF LOGISTICS LLC">
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="dashboard">Dashboard</div>
+      <div class="tab" data-tab="applications">Applications</div>
+      <div class="tab" data-tab="drivers">Drivers</div>
+      <div class="tab" data-tab="analytics">Analytics</div>
+      <div class="tab" data-tab="settings">Settings</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="panel active" id="panel-dashboard">
+      <div class="cards">
+        <div class="card"><h3>Total Applications</h3><div class="big" id="kpi-total">0</div></div>
+        <div class="card"><h3>Approved</h3><div class="big" id="kpi-approved">0</div></div>
+        <div class="card"><h3>Pending</h3><div class="big" id="kpi-pending">0</div></div>
+        <div class="card"><h3>Rejected</h3><div class="big" id="kpi-rejected">0</div></div>
+      </div>
+    </section>
+
+    <!-- APPLICATIONS -->
+    <section class="panel" id="panel-applications">
+      <div class="card">
+        <div class="toolbar">
+          <input id="search" placeholder="Search name or email…" />
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button class="btn secondary" id="refreshBtn">Refresh</button>
+        </div>
+        <div style="overflow:auto; border-radius:14px;">
+          <table class="table" id="appsTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="appsRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRIVERS -->
+    <section class="panel" id="panel-drivers">
+      <div class="card">
+        <h3 style="margin:0 0 10px">Approved Drivers</h3>
+        <div style="overflow:auto; border-radius:14px;">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Applied</th></tr></thead>
+            <tbody id="driversRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="panel" id="panel-analytics">
+      <div class="cards">
+        <div class="card"><h3>Approval Rate</h3><div class="big" id="kpi-approval-rate">0%</div></div>
+        <div class="card"><h3>This Month</h3><div class="big" id="kpi-this-month">0</div></div>
+        <div class="card"><h3>Rejection Rate</h3><div class="big" id="kpi-rejection-rate">0%</div></div>
+        <div class="card"><h3>Avg / Day (30d)</h3><div class="big" id="kpi-per-day">0</div></div>
+      </div>
+      <div class="card chart-wrap">
+        <canvas id="barChart" width="1200" height="320" aria-label="Applications by Status"></canvas>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="panel" id="panel-settings">
+      <div class="card">
+        <h3 style="margin:0 0 10px">Settings</h3>
+        <p>You are logged in as <b>Admin</b>.</p>
+        <form method="POST" action="/admin/logout" style="margin-top:10px">
+          <button class="btn danger" type="submit">Logout</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- MODAL (Application Details) -->
+    <div class="modal-backdrop" id="modal">
+      <div class="modal">
+        <div class="close-x" id="modalClose">✕</div>
+        <h3 id="mTitle">Application</h3>
+        <div class="grid" id="mGrid"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" id="lastUpdated">Last updated: —</div>
+  </div>
+
 <script>
-let allApps = [];async function loadApps(){const res = await fetch('/api/applications');allApps = await res.json();render();}
-function fmt(ts){ const d = new Date(ts||Date.now()); return d.toLocaleString(); }
-function render(){const q = document.getElementById('q').value.toLowerCase();const rows = document.getElementById('rows');rows.innerHTML='';
-allApps.filter(a => !q || ((`${a.firstName||''} ${a.lastName||''} ${a.email||''}`).toLowerCase().includes(q)))
-.forEach(a => {const tr = document.createElement('tr');tr.innerHTML = `<td>${fmt(a.submittedAt)}</td><td>${(a.firstName||'')+' '+(a.lastName||'')}</td><td>${a.email||''}</td><td>${a.phone||''}</td><td>pending</td><td><a href="/api/applications/${a.id}/pdf" target="_blank">Download</a></td>`;rows.appendChild(tr);});}
-document.getElementById('q').addEventListener('input', render);loadApps();
-</script></body></html>
+  // -------- State --------
+  let applications = [];
+  let filtered = [];
+
+  // -------- Utilities --------
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const fmtDate = (ts) => {
+    try{ return new Date(ts).toLocaleString(); } catch { return ""; }
+  };
+  const fullName = (a) => \`\${a.firstName||""} \${a.lastName||""}\`.trim();
+  const safeStatus = (s) => (s && ["approved","pending","rejected"].includes(s)) ? s : "pending";
+
+  // -------- Tabs --------
+  $$('#tabs .tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      $$('#tabs .tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const id = t.getAttribute('data-tab');
+      $$('.panel').forEach(p=>p.classList.remove('active'));
+      $('#panel-'+id).classList.add('active');
+      if(id==='analytics') drawBarChart();
+    });
+  });
+
+  // -------- Modal --------
+  const modal = $('#modal'), modalClose = $('#modalClose'), mGrid = $('#mGrid'), mTitle = $('#mTitle');
+  function openModal(app){
+    mTitle.textContent = \`Application — \${fullName(app)}\`;
+    mGrid.innerHTML = '';
+    const pairs = [
+      ["Email", app.email], ["Phone", app.phone],
+      ["Submitted", fmtDate(app.submittedAt)],
+      ["Date of Birth", app.dateOfBirth||""],
+      ["Address", [app.currentAddress, app.currentCity, app.currentState, app.currentZip].filter(Boolean).join(', ')],
+      ["CDL Class", app.cdlClass||""],
+      ["Experience", app.drivingExperience||""],
+      ["Owner Operator", (app.ownerOperator||app.ownerOperatorStep4)||""],
+      ["Emergency Contact", [app.emergencyName, app.emergencyPhone, app.emergencyEmail].filter(Boolean).join(' • ')]
+    ];
+    for(const [k,v] of pairs){
+      const div = document.createElement('div');
+      div.innerHTML = \`<div style="opacity:.7;font-weight:700">\${k}</div><div style="opacity:.95">\${v||''}</div>\`;
+      mGrid.appendChild(div);
+    }
+    modal.style.display = 'flex';
+  }
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.style.display='none'; });
+  modalClose.addEventListener('click', ()=> modal.style.display='none');
+
+  // -------- Fetch & Render --------
+  async function loadApps(){
+    try{
+      const res = await fetch('/api/applications');
+      applications = await res.json();
+      applications.forEach(a => a.status = safeStatus(a.status)); // default missing status to 'pending'
+      filtered = applications.slice();
+      renderKPIs();
+      renderApps();
+      renderDrivers();
+      setLastUpdated();
+    }catch(e){
+      console.error(e);
+      alert('Could not load applications. Are you logged in?');
+    }
+  }
+
+  function renderKPIs(){
+    const totals = {
+      total: applications.length,
+      approved: applications.filter(a=>a.status==='approved').length,
+      pending: applications.filter(a=>a.status==='pending').length,
+      rejected: applications.filter(a=>a.status==='rejected').length
+    };
+    $('#kpi-total').textContent = totals.total;
+    $('#kpi-approved').textContent = totals.approved;
+    $('#kpi-pending').textContent = totals.pending;
+    $('#kpi-rejected').textContent = totals.rejected;
+
+    // Analytics KPIs
+    const approvalRate = totals.total ? Math.round((totals.approved/totals.total)*100) : 0;
+    const rejectionRate = totals.total ? Math.round((totals.rejected/totals.total)*100) : 0;
+    $('#kpi-approval-rate').textContent = approvalRate + '%';
+    $('#kpi-rejection-rate').textContent = rejectionRate + '%';
+
+    // This month + avg/day (last 30d)
+    const now = new Date();
+    const m = now.getMonth(), y = now.getFullYear();
+    const monthCount = applications.filter(a=>{
+      const d=new Date(a.submittedAt||0);
+      return d.getMonth()===m && d.getFullYear()===y;
+    }).length;
+    $('#kpi-this-month').textContent = monthCount;
+
+    const last30 = Date.now() - 30*24*60*60*1000;
+    const perDay = Math.round(applications.filter(a=>(a.submittedAt||0)>=last30).length / 30);
+    $('#kpi-per-day').textContent = perDay;
+  }
+
+  function renderApps(){
+    const q = ($('#search').value||'').toLowerCase();
+    const sf = $('#statusFilter').value;
+    const rows = $('#appsRows');
+    rows.innerHTML = '';
+    filtered = applications
+      .filter(a => !sf || safeStatus(a.status)===sf)
+      .filter(a => {
+        const text = \`\${fullName(a)} \${a.email||''}\`.toLowerCase();
+        return !q || text.includes(q);
+      });
+
+    for(const a of filtered){
+      const tr = document.createElement('tr');
+      const status = safeStatus(a.status);
+      tr.innerHTML = `
+        <td>${fmtDate(a.submittedAt||Date.now())}</td>
+        <td>${fullName(a)}</td>
+        <td>${a.email||''}</td>
+        <td>${a.phone||''}</td>
+        <td><span class="status ${status}">${status}</span></td>
+        <td style="display:flex; gap:6px; flex-wrap:wrap">
+          <button class="btn secondary" data-view="${a.id}">View</button>
+          <a class="btn" href="/api/applications/${a.id}/pdf" target="_blank" rel="noopener">PDF</a>
+          <button class="btn" data-approve="${a.id}">Approve</button>
+          <button class="btn warning" data-pending="${a.id}">Pending</button>
+          <button class="btn danger" data-reject="${a.id}">Reject</button>
+        </td>
+      `;
+      rows.appendChild(tr);
+    }
+
+    // wire actions
+    rows.querySelectorAll('[data-view]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const app = applications.find(x=>x.id===b.getAttribute('data-view'));
+        if(app) openModal(app);
+      });
+    });
+    rows.querySelectorAll('[data-approve]').forEach(b=>{
+      b.addEventListener('click', ()=> changeStatus(b.getAttribute('data-approve'), 'approved'));
+    });
+    rows.querySelectorAll('[data-reject]').forEach(b=>{
+      b.addEventListener('click', ()=> changeStatus(b.getAttribute('data-reject'), 'rejected'));
+    });
+    rows.querySelectorAll('[data-pending]').forEach(b=>{
+      b.addEventListener('click', ()=> changeStatus(b.getAttribute('data-pending'), 'pending'));
+    });
+  }
+
+  function renderDrivers(){
+    const list = applications.filter(a=>safeStatus(a.status)==='approved');
+    const rows = $('#driversRows');
+    rows.innerHTML = '';
+    for(const a of list){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fullName(a)}</td>
+        <td>${a.email||''}</td>
+        <td>${a.phone||''}</td>
+        <td>${fmtDate(a.submittedAt||Date.now())}</td>
+      `;
+      rows.appendChild(tr);
+    }
+  }
+
+  // -------- Update status (optimistic; falls back gracefully) --------
+  async function changeStatus(id, status){
+    const idx = applications.findIndex(a=>a.id===id);
+    if(idx<0) return;
+    const prev = applications[idx].status;
+    applications[idx].status = status; // optimistic
+    renderKPIs(); renderApps(); renderDrivers();
+
+    try{
+      const res = await fetch('/api/applications/update', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id, status })
+      });
+      if(!res.ok){
+        applications[idx].status = prev;
+        renderKPIs(); renderApps(); renderDrivers();
+        alert('Server did not accept the update. (If this route is not implemented yet, the UI showed a preview only.)');
+      }
+    }catch(e){
+      applications[idx].status = prev;
+      renderKPIs(); renderApps(); renderDrivers();
+      alert('Could not reach server to update status.');
+    }
+  }
+
+  // -------- Analytics (simple bar chart without external libs) --------
+  function drawBarChart(){
+    const c = document.getElementById('barChart');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    const totals = {
+      Approved: applications.filter(a=>safeStatus(a.status)==='approved').length,
+      Pending:  applications.filter(a=>safeStatus(a.status)==='pending').length,
+      Rejected: applications.filter(a=>safeStatus(a.status)==='rejected').length
+    };
+    // Clear
+    ctx.clearRect(0,0,c.width,c.height);
+
+    const keys = Object.keys(totals);
+    const vals = keys.map(k=>totals[k]);
+    const max = Math.max(1, ...vals);
+    const pad = 40, gap = 40;
+    const barW = (c.width - pad*2 - gap*(keys.length-1)) / keys.length;
+    // Axes
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, c.height - pad);
+    ctx.lineTo(c.width - pad, c.height - pad);
+    ctx.moveTo(pad, pad);
+    ctx.lineTo(pad, c.height - pad);
+    ctx.stroke();
+
+    // Bars
+    keys.forEach((k, i)=>{
+      const v = totals[k];
+      const h = Math.round((v / max) * (c.height - pad*2));
+      const x = pad + i*(barW+gap);
+      const y = (c.height - pad) - h;
+
+      // color per status
+      let col = '#4f83ff';
+      if(k==='Approved') col = '#10b981';
+      if(k==='Pending') col = '#f59e0b';
+      if(k==='Rejected') col = '#ef4444';
+
+      ctx.fillStyle = col;
+      ctx.fillRect(x, y, barW, h);
+
+      // labels
+      ctx.fillStyle = 'rgba(232,238,252,.95)';
+      ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
+      ctx.textAlign = 'center';
+      ctx.fillText(k, x + barW/2, c.height - pad + 16);
+      ctx.font = 'bold 14px system-ui, -apple-system, Segoe UI, Roboto';
+      ctx.fillText(String(v), x + barW/2, y - 6);
+    });
+  }
+
+  // -------- Search & filter wiring --------
+  $('#search').addEventListener('input', renderApps);
+  $('#statusFilter').addEventListener('change', renderApps);
+  $('#refreshBtn').addEventListener('click', loadApps);
+
+  // -------- Last updated footer --------
+  function setLastUpdated(){
+    const s = new Date().toLocaleString();
+    $('#lastUpdated').textContent = 'Last updated: ' + s;
+  }
+
+  // -------- Init --------
+  loadApps();
+</script>
+</body>
+</html>
