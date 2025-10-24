@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALSAQQAF LOGISTICS LLC - Driver Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .company-name h2 {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            margin-top: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #64748b;
+            flex: 1;
+            text-align: center;
+        }
+
+        .step.active {
+            color: #2c5aa0;
+            font-weight: 600;
+        }
+
+        .step.completed {
+            color: #10b981;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .step.active .step-number {
+            background: #2c5aa0;
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .checkbox-group {
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #f1f5f9;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 12px;
+            margin-top: 2px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #2c5aa0;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 90, 160, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .employment-entry {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .remove-employment {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #signaturePad {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: white;
+            width: 100%;
+            height: 200px;
+        }
+
+        .signature-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .navigation {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-name">
+                <h2 style="font-size: 32px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;">
+                    🚚 ALSAQQAF LOGISTICS LLC
+                </h2>
+                <div style="font-size: 14px; opacity: 0.8; margin-bottom: 20px; font-weight: 300;">
+                    Professional Transportation Services
+                </div>
+            </div>
+            <h1>🚛 Professional Driver Application</h1>
+            <p>Complete your professional driver application with enhanced features</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressFill" style="width: 14.3%;"></div>
+            </div>
+        </div>
+
+        <div class="step-indicator" id="stepIndicator">
+            <!-- Steps will be populated by JavaScript -->
+        </div>
+
+        <form id="driverApplicationForm">
+            <div class="form-container">
+                <!-- Step 1: Privacy & Terms -->
+                <div class="step-content active" data-step="1">
+                    <h2>🔒 Legal Agreements & Terms of Application</h2>
+                    
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                        <h4 style="color: #856404; margin-bottom: 15px;">⚠️ IMPORTANT LEGAL NOTICE</h4>
+                        <p style="color: #856404; margin: 0; font-size: 14px; line-height: 1.5;">
+                            By proceeding with this application, you are entering into binding legal agreements with ALSAQQAF LOGISTICS LLC. 
+                            Please read all terms carefully before continuing. Your submission constitutes acceptance of all terms and conditions.
+                        </p>
+                    
+<!-- Added Agreement: Equipment Return -->
+<div class="checkbox-item">
+    <input type="checkbox" id="equipmentReturnAgreement" name="equipmentReturnAgreement" value="agreed" required>
+    <label for="equipmentReturnAgreement">
+        <strong>Equipment Return Agreement:</strong> I understand that if I fail to return any company equipment upon termination or at any other required time, 
+        the cost of such equipment will be deducted from my final paycheck.
+    </label>
+</div>
+<!-- Added: Owner Operator Question -->
+<div class="form-group" style="margin-top: 20px;">
+    <label><strong>Are you filling out this application as an Owner Operator?</strong> <span class="required">*</span></label>
+    <div style="margin-top: 10px;">
+        <label><input type="radio" name="ownerOperator" value="yes" required> Yes</label>
+        <label style="margin-left: 20px;"><input type="radio" name="ownerOperator" value="no" required> No</label>
+    </div>
+    <div class="error-message">This question is required</div>
+</div>
+
+<div id="ownerOperatorNotice" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-top: 15px; color: #856404;">
+    <strong>Important Notice for Owner Operators:</strong> All company-provided equipment must be returned upon termination or when requested. 
+    Failure to do so will result in deductions for the full value of the equipment.
+</div>
+
+<div class="error-message">You must agree to the equipment return policy to continue</div>
+</div>
+                    
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="privacyPolicy" name="privacyPolicy" value="agreed" required>
+                            <label for="privacyPolicy">
+                                <strong>Privacy Policy & Data Protection Agreement:</strong> I have read and agree to the Privacy Policy and understand how my personal information will be collected, used, stored, and protected during and after the application process. I consent to data retention for legal compliance purposes.
+                            </label>
+                        </div>
+                        <div class="error-message">You must agree to the privacy policy to continue</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="termsOfService" name="termsOfService" value="agreed" required>
+                            <label for="termsOfService">
+                                <strong>Terms of Service & Application Process:</strong> I agree to all Terms of Service and understand the complete employment application process, including but not limited to background checks, employment verification, drug testing, medical examinations, and reference checks as required by federal and state regulations.
+                            </label>
+                        </div>
+                        <div class="error-message">You must agree to the terms of service to continue</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="dataConsent" name="dataConsent" value="agreed" required>
+                            <label for="dataConsent">
+                                <strong>Comprehensive Data Processing Consent:</strong> I consent to the collection, processing, storage, and sharing of my personal data for employment purposes, including contact with previous employers, educational institutions, references, government agencies, and third-party verification services.
+                            </label>
+                        </div>
+                        <div class="error-message">Data processing consent is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="liabilityWaiver" name="liabilityWaiver" value="agreed" required>
+                            <label for="liabilityWaiver">
+                                <strong>Liability Waiver & Release:</strong> I understand and agree that ALSAQQAF LOGISTICS LLC, its officers, directors, employees, and agents are not liable for any damages, losses, or injuries arising from the application process, employment decisions, or any actions taken based on information provided in this application. I waive all claims against the company related to the application process.
+                            </label>
+                        </div>
+                        <div class="error-message">Liability waiver agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="noEmploymentGuarantee" name="noEmploymentGuarantee" value="agreed" required>
+                            <label for="noEmploymentGuarantee">
+                                <strong>No Employment Guarantee:</strong> I understand that submitting this application does not guarantee employment, interview, or any specific outcome. ALSAQQAF LOGISTICS LLC reserves the right to reject any application for any reason not prohibited by law. No employment relationship exists until a formal offer is made and accepted.
+                            </label>
+                        </div>
+                        <div class="error-message">No employment guarantee acknowledgment is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="atWillEmployment" name="atWillEmployment" value="agreed" required>
+                            <label for="atWillEmployment">
+                                <strong>At-Will Employment Agreement:</strong> I understand that any employment with ALSAQQAF LOGISTICS LLC is at-will, meaning either party may terminate the employment relationship at any time, with or without cause, with or without notice. No statements in this application create an employment contract or guarantee continued employment.
+                            </label>
+                        </div>
+                        <div class="error-message">At-will employment agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="disputeResolution" name="disputeResolution" value="agreed" required>
+                            <label for="disputeResolution">
+                                <strong>Dispute Resolution & Arbitration Agreement:</strong> I agree that any disputes arising from this application process or potential employment will be resolved through binding arbitration rather than court proceedings. I waive my right to jury trial and agree to resolve disputes individually, not as part of a class action.
+                            </label>
+                        </div>
+                        <div class="error-message">Dispute resolution agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="truthfulnessWarranty" name="truthfulnessWarranty" value="agreed" required>
+                            <label for="truthfulnessWarranty">
+                                <strong>Truthfulness Warranty & Fraud Prevention:</strong> I warrant that all information provided is true, complete, and accurate to the best of my knowledge. I understand that any false, misleading, or omitted information may result in immediate disqualification, termination if employed, and potential legal action. I agree to immediately notify the company of any changes to the information provided.
+                            </label>
+                        </div>
+                        <div class="error-message">Truthfulness warranty is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="complianceAgreement" name="complianceAgreement" value="agreed" required>
+                            <label for="complianceAgreement">
+                                <strong>Legal Compliance & Regulatory Agreement:</strong> I agree to comply with all federal, state, and local laws and regulations, including but not limited to DOT regulations, FMCSA requirements, drug and alcohol testing programs, safety regulations, and any other applicable laws. I understand that violations may result in immediate termination and legal consequences.
+                            </label>
+                        </div>
+                        <div class="error-message">Compliance agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backgroundCheckRelease" name="backgroundCheckRelease" value="agreed" required>
+                            <label for="backgroundCheckRelease">
+                                <strong>Comprehensive Background Check Release:</strong> I authorize ALSAQQAF LOGISTICS LLC to conduct thorough background investigations including but not limited to criminal history, employment history, education verification, credit checks, driving records, drug testing history, workers' compensation claims, and any other lawful inquiries. I release all parties from liability related to providing truthful information.
+                            </label>
+                        </div>
+                        <div class="error-message">Background check release is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="confidentialityAgreement" name="confidentialityAgreement" value="agreed" required>
+                            <label for="confidentialityAgreement">
+                                <strong>Confidentiality & Non-Disclosure Agreement:</strong> I agree to maintain strict confidentiality regarding all company information, trade secrets, client lists, operational procedures, and any proprietary information I may encounter during the application process or potential employment. This obligation continues indefinitely, even if not hired.
+                            </label>
+                        </div>
+                        <div class="error-message">Confidentiality agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="intellectualPropertyWaiver" name="intellectualPropertyWaiver" value="agreed" required>
+                            <label for="intellectualPropertyWaiver">
+                                <strong>Intellectual Property Waiver:</strong> I acknowledge that any ideas, suggestions, improvements, or innovations I may provide during the application process or employment become the exclusive property of ALSAQQAF LOGISTICS LLC. I waive all rights to such intellectual property and agree not to claim ownership or compensation.
+                            </label>
+                        </div>
+                        <div class="error-message">Intellectual property waiver is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="communicationConsent" name="communicationConsent" value="agreed" required>
+                            <label for="communicationConsent">
+                                <strong>Communication & Marketing Consent:</strong> I consent to receive communications from ALSAQQAF LOGISTICS LLC via phone, email, text, or mail regarding my application, potential employment opportunities, company updates, and safety information. I understand I may unsubscribe from marketing communications but cannot opt out of essential employment-related communications.
+                            </label>
+                        </div>
+                        <div class="error-message">Communication consent is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="indemnificationAgreement" name="indemnificationAgreement" value="agreed" required>
+                            <label for="indemnificationAgreement">
+                                <strong>Indemnification Agreement:</strong> I agree to indemnify and hold harmless ALSAQQAF LOGISTICS LLC from any claims, damages, losses, or expenses arising from my actions, omissions, or misrepresentations during the application process or any resulting employment. This includes legal fees and costs associated with defending against such claims.
+                            </label>
+                        </div>
+                        <div class="error-message">Indemnification agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finalAgreement" name="finalAgreement" value="agreed" required>
+                            <label for="finalAgreement">
+                                <strong>Final Comprehensive Agreement:</strong> I acknowledge that I have read, understood, and voluntarily agree to ALL terms and conditions set forth in this application. I understand these agreements are binding and enforceable. I confirm I am of legal age and mental capacity to enter into these agreements. No oral modifications to these terms are valid.
+                            </label>
+                        </div>
+                        <div class="error-message">Final comprehensive agreement is required</div>
+                    </div>
+
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 20px; margin-top: 25px;">
+                        <h4 style="color: #721c24; margin-bottom: 15px;">📝 LEGAL ACKNOWLEDGMENT</h4>
+                        <p style="color: #721c24; margin: 0; font-size: 14px; line-height: 1.5;">
+                            <strong>By proceeding beyond this page, you acknowledge that:</strong><br>
+                            • You have read and understood all agreements above<br>
+                            • You voluntarily accept all terms and conditions<br>
+                            • You waive certain legal rights including jury trial<br>
+                            • You understand the binding nature of these agreements<br>
+                            • You release ALSAQQAF LOGISTICS LLC from specified liabilities
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Personal Information -->
+                <div class="step-content" data-step="2">
+                    <h2>👤 Personal Information</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name <span class="required">*</span></label>
+                            <input type="text" id="firstName" name="firstName" required>
+                            <div class="error-message">First name is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name <span class="required">*</span></label>
+                            <input type="text" id="lastName" name="lastName" required>
+                            <div class="error-message">Last name is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required>
+                            <div class="error-message">Please enter a valid email address</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="phone" name="phone" required>
+                            <div class="error-message">Phone number is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth <span class="required">*</span></label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+                            <div class="error-message">Date of birth is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ssn">Social Security Number <span class="required">*</span></label>
+                            <input type="text" id="ssn" name="ssn" maxlength="11" required>
+                            <div class="error-message">SSN is required (XXX-XX-XXXX format)</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alternatePhone">Alternate Phone Number</label>
+                        <input type="tel" id="alternatePhone" name="alternatePhone">
+                    </div>
+
+                    <!-- Professional Status & Eligibility -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Professional Status & Work Authorization</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Are you legally authorized to work in the United States?</strong> <span class="required">*</span></label>
+                            <div style="margin-top: 10px;">
+                                <label><input type="radio" name="workAuthorization" value="yes" required> Yes, I am authorized</label><br>
+                                <label><input type="radio" name="workAuthorization" value="no" required> No, I will need sponsorship</label>
+                            </div>
+                            <div class="error-message">Work authorization status is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Are you 21 years of age or older?</strong> <span class="required">*</span></label>
+                            <div style="margin-top: 10px;">
+                                <label><input type="radio" name="ageEligible" value="yes" required> Yes, 21 or older</label><br>
+                                <label><input type="radio" name="ageEligible" value="no" required> No, under 21</label>
+                            </div>
+                            <div class="error-message">Age eligibility is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Military Service Status</strong></label>
+                            <select id="militaryStatus" name="militaryStatus">
+                                <option value="">Select Status</option>
+                                <option value="never-served">Never Served</option>
+                                <option value="active-duty">Currently Active Duty</option>
+                                <option value="veteran">Veteran</option>
+                                <option value="reserves">Reserves/National Guard</option>
+                                <option value="retired">Retired Military</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Preferred Work Schedule</strong> <span class="required">*</span></label>
+                            <select id="workSchedule" name="workSchedule" required>
+                                <option value="">Select Schedule</option>
+                                <option value="full-time">Full-time (40+ hours/week)</option>
+                                <option value="part-time">Part-time</option>
+                                <option value="local-daily">Local Daily Routes</option>
+                                <option value="regional">Regional (home weekly)</option>
+                                <option value="otr">Over-the-Road (OTR)</option>
+                                <option value="dedicated">Dedicated Routes</option>
+                            </select>
+                            <div class="error-message">Work schedule preference is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Availability & Flexibility -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Availability & Scheduling</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Available Start Date</strong> <span class="required">*</span></label>
+                            <input type="date" id="availableStartDate" name="availableStartDate" required>
+                            <div class="error-message">Available start date is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Can you work weekends?</strong> <span class="required">*</span></label>
+                            <div style="margin-top: 10px;">
+                                <label><input type="radio" name="weekendAvailability" value="yes" required> Yes, available weekends</label><br>
+                                <label><input type="radio" name="weekendAvailability" value="limited" required> Limited weekend availability</label><br>
+                                <label><input type="radio" name="weekendAvailability" value="no" required> No weekend availability</label>
+                            </div>
+                            <div class="error-message">Weekend availability is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Willing to work overtime?</strong> <span class="required">*</span></label>
+                            <div style="margin-top: 10px;">
+                                <label><input type="radio" name="overtimeWilling" value="yes" required> Yes, as needed</label><br>
+                                <label><input type="radio" name="overtimeWilling" value="limited" required> Limited overtime only</label><br>
+                                <label><input type="radio" name="overtimeWilling" value="no" required> No overtime preferred</label>
+                            </div>
+                            <div class="error-message">Overtime willingness is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Travel/Time Away Tolerance</strong> <span class="required">*</span></label>
+                            <select id="travelTolerance" name="travelTolerance" required>
+                                <option value="">Select Tolerance</option>
+                                <option value="local-only">Local only (home daily)</option>
+                                <option value="regional">Regional (home weekly)</option>
+                                <option value="otr-2weeks">OTR (out 2 weeks)</option>
+                                <option value="otr-1month">OTR (out 1 month)</option>
+                                <option value="otr-extended">Extended OTR (flexible)</option>
+                            </select>
+                            <div class="error-message">Travel tolerance is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contact Information -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Emergency Contact Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="emergencyName">Emergency Contact Name <span class="required">*</span></label>
+                            <input type="text" id="emergencyName" name="emergencyName" required>
+                            <div class="error-message">Emergency contact name is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergencyRelationship">Relationship <span class="required">*</span></label>
+                            <select id="emergencyRelationship" name="emergencyRelationship" required>
+                                <option value="">Select Relationship</option>
+                                <option value="spouse">Spouse</option>
+                                <option value="parent">Parent</option>
+                                <option value="child">Child</option>
+                                <option value="sibling">Sibling</option>
+                                <option value="friend">Friend</option>
+                                <option value="other-family">Other Family Member</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="error-message">Relationship is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="emergencyPhone">Emergency Contact Phone <span class="required">*</span></label>
+                            <input type="tel" id="emergencyPhone" name="emergencyPhone" required>
+                            <div class="error-message">Emergency contact phone is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergencyEmail">Emergency Contact Email</label>
+                            <input type="email" id="emergencyEmail" name="emergencyEmail">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Address Information -->
+                <div class="step-content" data-step="3">
+                    <h2>🏠 Address Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="currentAddress">Current Address <span class="required">*</span></label>
+                        <input type="text" id="currentAddress" name="currentAddress" required>
+                        <div class="error-message">Current address is required</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="currentCity">City <span class="required">*</span></label>
+                            <input type="text" id="currentCity" name="currentCity" required>
+                            <div class="error-message">City is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentState">State <span class="required">*</span></label>
+                            <select id="currentState" name="currentState" required>
+                                <option value="">Select State</option>
+                                <option value="AL">Alabama</option>
+                                <option value="AK">Alaska</option>
+                                <option value="AZ">Arizona</option>
+                                <option value="AR">Arkansas</option>
+                                <option value="CA">California</option>
+                                <option value="CO">Colorado</option>
+                                <option value="CT">Connecticut</option>
+                                <option value="DE">Delaware</option>
+                                <option value="DC">District of Columbia</option>
+                                <option value="FL">Florida</option>
+                                <option value="GA">Georgia</option>
+                                <option value="HI">Hawaii</option>
+                                <option value="ID">Idaho</option>
+                                <option value="IL">Illinois</option>
+                                <option value="IN">Indiana</option>
+                                <option value="IA">Iowa</option>
+                                <option value="KS">Kansas</option>
+                                <option value="KY">Kentucky</option>
+                                <option value="LA">Louisiana</option>
+                                <option value="ME">Maine</option>
+                                <option value="MD">Maryland</option>
+                                <option value="MA">Massachusetts</option>
+                                <option value="MI">Michigan</option>
+                                <option value="MN">Minnesota</option>
+                                <option value="MS">Mississippi</option>
+                                <option value="MO">Missouri</option>
+                                <option value="MT">Montana</option>
+                                <option value="NE">Nebraska</option>
+                                <option value="NV">Nevada</option>
+                                <option value="NH">New Hampshire</option>
+                                <option value="NJ">New Jersey</option>
+                                <option value="NM">New Mexico</option>
+                                <option value="NY">New York</option>
+                                <option value="NC">North Carolina</option>
+                                <option value="ND">North Dakota</option>
+                                <option value="OH">Ohio</option>
+                                <option value="OK">Oklahoma</option>
+                                <option value="OR">Oregon</option>
+                                <option value="PA">Pennsylvania</option>
+                                <option value="RI">Rhode Island</option>
+                                <option value="SC">South Carolina</option>
+                                <option value="SD">South Dakota</option>
+                                <option value="TN">Tennessee</option>
+                                <option value="TX">Texas</option>
+                                <option value="UT">Utah</option>
+                                <option value="VT">Vermont</option>
+                                <option value="VA">Virginia</option>
+                                <option value="WA">Washington</option>
+                                <option value="WV">West Virginia</option>
+                                <option value="WI">Wisconsin</option>
+                                <option value="WY">Wyoming</option>
+                            </select>
+                            <div class="error-message">State is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="currentZip">ZIP Code <span class="required">*</span></label>
+                            <input type="text" id="currentZip" name="currentZip" required>
+                            <div class="error-message">ZIP code is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="yearsAtCurrent">Years at Current Address <span class="required">*</span></label>
+                            <input type="number" id="yearsAtCurrent" name="yearsAtCurrent" min="0" max="50" step="0.1" required>
+                            <div class="error-message">Years at current address is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Residence Details -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Residence Details</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><strong>Residence Type</strong> <span class="required">*</span></label>
+                            <select id="residenceType" name="residenceType" required>
+                                <option value="">Select Type</option>
+                                <option value="own">Own Home</option>
+                                <option value="rent">Rent/Lease</option>
+                                <option value="family">Living with Family</option>
+                                <option value="temporary">Temporary Housing</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="error-message">Residence type is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Housing Stability</strong> <span class="required">*</span></label>
+                            <select id="housingStability" name="housingStability" required>
+                                <option value="">Select Stability</option>
+                                <option value="permanent">Permanent/Stable</option>
+                                <option value="temporary">Temporary (< 6 months)</option>
+                                <option value="transitional">Transitional Housing</option>
+                                <option value="uncertain">Uncertain</option>
+                            </select>
+                            <div class="error-message">Housing stability is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Mailing Address -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Mailing Address</h3>
+                    
+                    <div class="checkbox-item" style="margin-bottom: 20px;">
+                        <input type="checkbox" id="sameAsPhysical" name="sameAsPhysical" value="yes" checked>
+                        <label for="sameAsPhysical">
+                            Mailing address is the same as physical address
+                        </label>
+                    </div>
+
+                    <div id="mailingAddressSection" style="display: none;">
+                        <div class="form-group">
+                            <label for="mailingAddress">Mailing Address</label>
+                            <input type="text" id="mailingAddress" name="mailingAddress">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mailingCity">Mailing City</label>
+                                <input type="text" id="mailingCity" name="mailingCity">
+                            </div>
+                            <div class="form-group">
+                                <label for="mailingState">Mailing State</label>
+                                <select id="mailingState" name="mailingState">
+                                    <option value="">Select State</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="DC">District of Columbia</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mailingZip">Mailing ZIP Code</label>
+                            <input type="text" id="mailingZip" name="mailingZip">
+                        </div>
+                    </div>
+
+                    <!-- Address History & Verification -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Address History Verification</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Have you had more than 3 addresses in the past 3 years?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="multipleAddresses" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="multipleAddresses" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Please indicate your address history</div>
+                    </div>
+
+                    <div id="multipleAddressDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="addressHistory">Please list additional addresses with dates:</label>
+                            <textarea id="addressHistory" name="addressHistory" rows="4" placeholder="Address 1: [Full Address] - [Start Date] to [End Date]&#10;Address 2: [Full Address] - [Start Date] to [End Date]"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Can we contact your current landlord/property manager for verification?</strong></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="landlordContact" value="yes"> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="landlordContact" value="no"> No</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="landlordContact" value="na"> Not Applicable (Own Home)</label>
+                        </div>
+                    </div>
+
+                    <div id="landlordContactInfo" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="landlordName">Landlord/Property Manager Name</label>
+                                <input type="text" id="landlordName" name="landlordName">
+                            </div>
+                            <div class="form-group">
+                                <label for="landlordPhone">Contact Phone</label>
+                                <input type="tel" id="landlordPhone" name="landlordPhone">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="previousAddressSection" style="display: none;">
+                        <h3>Previous Address (Required if less than 3 years at current address)</h3>
+                        
+                        <div class="form-group">
+                            <label for="previousAddress">Previous Address <span class="required">*</span></label>
+                            <input type="text" id="previousAddress" name="previousAddress">
+                            <div class="error-message">Previous address is required</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="previousCity">Previous City <span class="required">*</span></label>
+                                <input type="text" id="previousCity" name="previousCity">
+                                <div class="error-message">Previous city is required</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="previousState">Previous State <span class="required">*</span></label>
+                                <select id="previousState" name="previousState">
+                                    <option value="">Select State</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="DC">District of Columbia</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                                <div class="error-message">Previous state is required</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="previousZip">Previous ZIP Code <span class="required">*</span></label>
+                            <input type="text" id="previousZip" name="previousZip">
+                            <div class="error-message">Previous ZIP code is required</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: License & Medical Information -->
+                <div class="step-content" data-step="4">
+                    <h2>🆔 License & Medical Information</h2>
+<div class="form-group" style="background:#fff3cd;border:2px solid #ffcc00;border-radius:10px;padding:20px;margin-bottom:25px;">
+    <h3 style="color:#b45309;">⚠️ Owner Operator Declaration</h3>
+    <label><strong>Are you applying as an Owner Operator?</strong> <span class="required">*</span></label><br><br>
+    <label><input type="radio" name="ownerOperatorStep4" value="yes" required> Yes</label>
+    <label style="margin-left:20px;"><input type="radio" name="ownerOperatorStep4" value="no" required> No</label>
+
+    <div id="ownerOperatorStep4Notice" style="display:none;margin-top:20px;background:#fee2e2;border:2px solid #dc2626;border-radius:10px;padding:15px;color:#7f1d1d;">
+        <strong>IMPORTANT:</strong> As an Owner Operator, you are responsible for returning all company-provided equipment upon termination or when requested. Failure to do so will result in deductions from your final paycheck for the full replacement value of the equipment.
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const yesRadio = document.querySelector('input[name="ownerOperatorStep4"][value="yes"]');
+    const noRadio = document.querySelector('input[name="ownerOperatorStep4"][value="no"]');
+    const notice = document.getElementById('ownerOperatorStep4Notice');
+    if (yesRadio && noRadio) {
+        yesRadio.addEventListener('change', () => notice.style.display = 'block');
+        noRadio.addEventListener('change', () => notice.style.display = 'none');
+    }
+});
+</script>
+
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cdlNumber">CDL Number <span class="required">*</span></label>
+                            <input type="text" id="cdlNumber" name="cdlNumber" required>
+                            <div class="error-message">CDL number is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cdlClass">CDL Class <span class="required">*</span></label>
+                            <select id="cdlClass" name="cdlClass" required>
+                                <option value="">Select CDL Class</option>
+                                <option value="A">Class A</option>
+                                <option value="B">Class B</option>
+                                <option value="C">Class C</option>
+                            </select>
+                            <div class="error-message">CDL class is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="issuingState">Issuing State <span class="required">*</span></label>
+                            <select id="issuingState" name="issuingState" required>
+                                <option value="">Select State</option>
+                                <option value="AL">Alabama</option>
+                                <option value="AK">Alaska</option>
+                                <option value="AZ">Arizona</option>
+                                <option value="AR">Arkansas</option>
+                                <option value="CA">California</option>
+                                <option value="CO">Colorado</option>
+                                <option value="CT">Connecticut</option>
+                                <option value="DE">Delaware</option>
+                                <option value="DC">District of Columbia</option>
+                                <option value="FL">Florida</option>
+                                <option value="GA">Georgia</option>
+                                <option value="HI">Hawaii</option>
+                                <option value="ID">Idaho</option>
+                                <option value="IL">Illinois</option>
+                                <option value="IN">Indiana</option>
+                                <option value="IA">Iowa</option>
+                                <option value="KS">Kansas</option>
+                                <option value="KY">Kentucky</option>
+                                <option value="LA">Louisiana</option>
+                                <option value="ME">Maine</option>
+                                <option value="MD">Maryland</option>
+                                <option value="MA">Massachusetts</option>
+                                <option value="MI">Michigan</option>
+                                <option value="MN">Minnesota</option>
+                                <option value="MS">Mississippi</option>
+                                <option value="MO">Missouri</option>
+                                <option value="MT">Montana</option>
+                                <option value="NE">Nebraska</option>
+                                <option value="NV">Nevada</option>
+                                <option value="NH">New Hampshire</option>
+                                <option value="NJ">New Jersey</option>
+                                <option value="NM">New Mexico</option>
+                                <option value="NY">New York</option>
+                                <option value="NC">North Carolina</option>
+                                <option value="ND">North Dakota</option>
+                                <option value="OH">Ohio</option>
+                                <option value="OK">Oklahoma</option>
+                                <option value="OR">Oregon</option>
+                                <option value="PA">Pennsylvania</option>
+                                <option value="RI">Rhode Island</option>
+                                <option value="SC">South Carolina</option>
+                                <option value="SD">South Dakota</option>
+                                <option value="TN">Tennessee</option>
+                                <option value="TX">Texas</option>
+                                <option value="UT">Utah</option>
+                                <option value="VT">Vermont</option>
+                                <option value="VA">Virginia</option>
+                                <option value="WA">Washington</option>
+                                <option value="WV">West Virginia</option>
+                                <option value="WI">Wisconsin</option>
+                                <option value="WY">Wyoming</option>
+                            </select>
+                            <div class="error-message">Issuing state is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="expirationDate">Expiration Date <span class="required">*</span></label>
+                            <input type="date" id="expirationDate" name="expirationDate" required>
+                            <div class="error-message">Expiration date is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endorsements">Endorsements (if any)</label>
+                        <input type="text" id="endorsements" name="endorsements" placeholder="e.g., HazMat, Passenger, School Bus">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="drivingExperience">Years of Driving Experience <span class="required">*</span></label>
+                            <input type="number" id="drivingExperience" name="drivingExperience" min="0" max="50" required>
+                            <div class="error-message">Driving experience is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cdlFirstObtained">Date CDL First Obtained <span class="required">*</span></label>
+                            <input type="date" id="cdlFirstObtained" name="cdlFirstObtained" required>
+                            <div class="error-message">CDL obtain date is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Endorsements & Certifications -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Professional Endorsements & Certifications</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>CDL Endorsements</strong> (Check all that apply)</label>
+                        <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseH" name="cdlEndorsements" value="H">
+                                <label for="endorseH">H - Hazardous Materials</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseN" name="cdlEndorsements" value="N">
+                                <label for="endorseN">N - Tank Vehicles</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseP" name="cdlEndorsements" value="P">
+                                <label for="endorseP">P - Passenger</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseS" name="cdlEndorsements" value="S">
+                                <label for="endorseS">S - School Bus</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseT" name="cdlEndorsements" value="T">
+                                <label for="endorseT">T - Double/Triple Trailers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="endorseX" name="cdlEndorsements" value="X">
+                                <label for="endorseX">X - Combination H&N</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOT & Safety Compliance -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">DOT & Safety Compliance</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dotPhysicalExp">DOT Physical Expiration <span class="required">*</span></label>
+                            <input type="date" id="dotPhysicalExp" name="dotPhysicalExp" required>
+                            <div class="error-message">DOT physical expiration is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>TWIC Card Status</strong></label>
+                            <select id="twicCard" name="twicCard">
+                                <option value="">Select Status</option>
+                                <option value="current">Current/Valid</option>
+                                <option value="expired">Expired</option>
+                                <option value="applied">Application in Process</option>
+                                <option value="none">No TWIC Card</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Drug & Alcohol Testing Program</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="drugTesting" value="enrolled" required> Currently Enrolled</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="drugTesting" value="willing" required> Willing to Enroll</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="drugTesting" value="not_willing" required> Not Willing</label>
+                        </div>
+                        <div class="error-message">Drug testing program participation is required</div>
+                    </div>
+
+                    <!-- Vehicle Operating Experience -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Vehicle Operating Experience</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Types of Vehicles Operated</strong> (Check all that apply)</label>
+                        <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleStraight" name="vehicleTypes" value="straight">
+                                <label for="vehicleStraight">Straight Truck</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleTractor" name="vehicleTypes" value="tractor">
+                                <label for="vehicleTractor">Tractor-Trailer</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleBox" name="vehicleTypes" value="box">
+                                <label for="vehicleBox">Box Truck</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleFlatbed" name="vehicleTypes" value="flatbed">
+                                <label for="vehicleFlatbed">Flatbed</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleTanker" name="vehicleTypes" value="tanker">
+                                <label for="vehicleTanker">Tanker</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vehicleRefrigerated" name="vehicleTypes" value="refrigerated">
+                                <label for="vehicleRefrigerated">Refrigerated</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Operating Range Experience</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="operatingRange" value="local" required> Local (within 50 miles)</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="operatingRange" value="regional" required> Regional (multi-state)</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="operatingRange" value="otr" required> Over-the-Road (OTR)</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="operatingRange" value="all" required> All types</label>
+                        </div>
+                        <div class="error-message">Operating range experience is required</div>
+                    </div>
+
+                    <!-- Safety Record Questions -->
+                    <h3>Safety Record</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Have you had any moving violations in the past 3 years?</strong></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="movingViolations" value="yes"> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="movingViolations" value="no"> No</label>
+                        </div>
+                    </div>
+
+                    <div id="violationsDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="violationDetails">Please describe violations:</label>
+                            <textarea id="violationDetails" name="violationDetails" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Have you been involved in any accidents while driving commercially?</strong></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="accidents" value="yes"> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="accidents" value="no"> No</label>
+                        </div>
+                    </div>
+
+                    <div id="accidentDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="accidentInfo">Please describe accidents:</label>
+                            <textarea id="accidentInfo" name="accidentInfo" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Employment & Background -->
+                <div class="step-content" data-step="5">
+                    <h2>💼 Employment History & Background</h2>
+                    
+                    <!-- Employment Gap Warning -->
+                    <div id="employmentGapWarning" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px; color: #856404;">
+                        <!-- Gap warnings will be populated by JavaScript -->
+                    </div>
+
+                    <div id="employmentContainer">
+                        <!-- Employment entries will be added dynamically -->
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="addEmploymentEntry()" style="margin-top: 20px;">
+                        + Add Employment
+                    </button>
+
+                    <!-- Background Questions -->
+                    <h3 style="margin-top: 40px; color: #2c5aa0;">Professional Employment Background</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Employment Status</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="employmentStatus" value="currently_employed" required> Currently Employed</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="employmentStatus" value="unemployed" required> Currently Unemployed</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="employmentStatus" value="self_employed" required> Self-Employed</label>
+                        </div>
+                        <div class="error-message">Employment status is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Can we contact your current/most recent employer?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="contactCurrentEmployer" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="contactCurrentEmployer" value="no" required> No</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="contactCurrentEmployer" value="after_offer" required> Only after job offer</label>
+                        </div>
+                        <div class="error-message">Employer contact permission is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Have you ever been terminated or fired from a job?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="firedFromJob" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="firedFromJob" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Termination history is required</div>
+                    </div>
+
+                    <div id="terminationDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="terminationReason">Please explain the circumstances:</label>
+                            <textarea id="terminationReason" name="terminationReason" rows="3" placeholder="Date, company name, and reason for termination"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Have you ever been denied employment as a commercial driver?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="deniedEmployment" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="deniedEmployment" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Employment denial history is required</div>
+                    </div>
+
+                    <div id="denialDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="denialReason">Please provide details:</label>
+                            <textarea id="denialReason" name="denialReason" rows="3" placeholder="Company name, date, and reason for denial"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Safety & Compliance Background -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Safety & Compliance Background</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Have you ever failed a DOT drug/alcohol test?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="failedDotTest" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="failedDotTest" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">DOT test history is required</div>
+                    </div>
+
+                    <div id="dotTestDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="dotTestInfo">Please provide details and current SAP status:</label>
+                            <textarea id="dotTestInfo" name="dotTestInfo" rows="3" placeholder="Date, type of test, and completion of SAP program if applicable"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Have you ever been disqualified from operating a commercial vehicle?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="disqualified" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="disqualified" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Disqualification history is required</div>
+                    </div>
+
+                    <div id="disqualificationDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="disqualificationInfo">Please provide details:</label>
+                            <textarea id="disqualificationInfo" name="disqualificationInfo" rows="3" placeholder="Date, reason, and current status"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Criminal Background -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Criminal Background</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Have you ever been convicted of a felony?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="felonyConviction" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="felonyConviction" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Felony history is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Have you ever been convicted of a DUI/DWI?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="duiConviction" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="duiConviction" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">DUI/DWI history is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Do you have any other criminal history in the past 7 years?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="criminalHistory" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="criminalHistory" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Criminal history is required</div>
+                    </div>
+
+                    <div id="criminalDetails" style="display: none;">
+                        <div class="form-group">
+                            <label for="criminalInfo">Please provide complete details for ALL criminal history:</label>
+                            <textarea id="criminalInfo" name="criminalInfo" rows="4" placeholder="For each incident, include: Date, Charge, Court/Location, Disposition/Sentence, Current Status"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Professional References -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Professional References</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Can you provide 3 professional references who can verify your work performance?</strong> <span class="required">*</span></label>
+                        <div style="margin-top: 10px;">
+                            <label><input type="radio" name="canProvideReferences" value="yes" required> Yes</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="canProvideReferences" value="partial" required> Partially (1-2 references)</label>
+                            <label style="margin-left: 20px;"><input type="radio" name="canProvideReferences" value="no" required> No</label>
+                        </div>
+                        <div class="error-message">Reference availability is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="referenceComments">Additional comments about employment gaps or background (optional):</label>
+                        <textarea id="referenceComments" name="referenceComments" rows="3" placeholder="Explain any employment gaps, unusual circumstances, or additional context you'd like to provide"></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 6: Certification & Signature -->
+                <div class="step-content" data-step="6">
+                    <h2>✍️ Professional Certifications & Digital Signature</h2>
+                    
+                    <!-- Professional Certifications -->
+                    <h3 style="color: #2c5aa0;">Additional Professional Certifications</h3>
+                    
+                    <div class="form-group">
+                        <label><strong>Professional Certifications</strong> (Check all that apply)</label>
+                        <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certSmith" name="professionalCerts" value="smith_system">
+                                <label for="certSmith">Smith System Driving</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certDefensive" name="professionalCerts" value="defensive_driving">
+                                <label for="certDefensive">Defensive Driving Course</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certHazmat" name="professionalCerts" value="hazmat_training">
+                                <label for="certHazmat">HAZMAT Safety Training</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certCPR" name="professionalCerts" value="cpr_first_aid">
+                                <label for="certCPR">CPR/First Aid</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certCSA" name="professionalCerts" value="csa_training">
+                                <label for="certCSA">CSA Training</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="certCargoSecure" name="professionalCerts" value="cargo_securement">
+                                <label for="certCargoSecure">Cargo Securement</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalCerts">Other Professional Training/Certifications:</label>
+                        <textarea id="additionalCerts" name="additionalCerts" rows="2" placeholder="List any other relevant training, certifications, or safety courses"></textarea>
+                    </div>
+
+                    <!-- Legal Certifications & Agreements -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Legal Certifications & Final Agreements</h3>
+                    
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="certifyTruthfulness" name="certifyTruthfulness" value="certified" required>
+                            <label for="certifyTruthfulness">
+                                <strong>Application Truthfulness Certification:</strong> I certify under penalty of perjury that all information provided in this application is true, complete, and accurate to the best of my knowledge. I understand that any false information may result in rejection of my application, termination of employment if hired, and potential legal action including criminal prosecution for fraud.
+                            </label>
+                        </div>
+                        <div class="error-message">Truthfulness certification is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backgroundCheckConsent" name="backgroundCheckConsent" value="consented" required>
+                            <label for="backgroundCheckConsent">
+                                <strong>Comprehensive Background Investigation Authorization:</strong> I authorize and consent to comprehensive background checks, employment verification, reference checks, criminal history searches, credit reports, driving record checks, drug testing history, workers' compensation claims history, and any other lawful investigations as part of the employment process. I waive any claims related to such investigations.
+                            </label>
+                        </div>
+                        <div class="error-message">Background check authorization is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="drugTestConsent" name="drugTestConsent" value="consented" required>
+                            <label for="drugTestConsent">
+                                <strong>Drug & Alcohol Testing Comprehensive Consent:</strong> I understand and consent to all DOT-required drug and alcohol testing including pre-employment, random, post-accident, reasonable suspicion, return-to-duty, and follow-up testing. I agree to submit to testing immediately upon request and understand that refusal constitutes a positive test result with immediate termination consequences.
+                            </label>
+                        </div>
+                        <div class="error-message">Drug testing consent is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="employmentTerms" name="employmentTerms" value="agreed" required>
+                            <label for="employmentTerms">
+                                <strong>Employment Terms & At-Will Agreement:</strong> I understand that any employment with ALSAQQAF LOGISTICS LLC is at-will and may be terminated by either party at any time with or without cause or notice. I waive any claims to job security, severance pay, or continued employment. I understand no contract for employment is created by this application or hiring process.
+                            </label>
+                        </div>
+                        <div class="error-message">Employment terms agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="dotCompliance" name="dotCompliance" value="agreed" required>
+                            <label for="dotCompliance">
+                                <strong>DOT Compliance & Safety Agreement:</strong> I agree to comply with all DOT regulations, FMCSA requirements, company policies, safety procedures, and applicable laws. I understand that any violations may result in immediate termination, regulatory action, and personal liability. I accept full responsibility for maintaining compliance throughout my employment.
+                            </label>
+                        </div>
+                        <div class="error-message">DOT compliance agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="physicalRequirements" name="physicalRequirements" value="acknowledged" required>
+                            <label for="physicalRequirements">
+                                <strong>Physical Requirements & Fitness Acknowledgment:</strong> I understand the physical demands of commercial driving and certify that I can perform these duties safely with or without reasonable accommodation. I agree to maintain required medical certifications and immediately report any changes in my physical or mental condition that may affect my ability to safely operate commercial vehicles.
+                            </label>
+                        </div>
+                        <div class="error-message">Physical requirements acknowledgment is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="liabilityRelease" name="liabilityRelease" value="agreed" required>
+                            <label for="liabilityRelease">
+                                <strong>Comprehensive Liability Release:</strong> I release, waive, and discharge ALSAQQAF LOGISTICS LLC, its officers, directors, employees, and agents from any and all claims, damages, losses, or liabilities arising from my application, potential employment, or any decisions made regarding my application. This release is binding on my heirs, successors, and assigns.
+                            </label>
+                        </div>
+                        <div class="error-message">Liability release is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="arbitrationAgreement" name="arbitrationAgreement" value="agreed" required>
+                            <label for="arbitrationAgreement">
+                                <strong>Binding Arbitration Agreement:</strong> I agree that any disputes, claims, or controversies arising from this application, potential employment, or termination will be resolved exclusively through binding arbitration. I waive my right to trial by jury and agree to resolve disputes individually, not as part of any class action or collective proceeding.
+                            </label>
+                        </div>
+                        <div class="error-message">Arbitration agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="confidentialityReinforcement" name="confidentialityReinforcement" value="agreed" required>
+                            <label for="confidentialityReinforcement">
+                                <strong>Confidentiality & Trade Secrets Agreement:</strong> I agree to protect and maintain the confidentiality of all company information, trade secrets, customer lists, operational procedures, and proprietary information. I will not disclose, use, or exploit such information for personal gain or competitive advantage. This obligation survives termination of any employment relationship.
+                            </label>
+                        </div>
+                        <div class="error-message">Confidentiality agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="indemnificationReinforcement" name="indemnificationReinforcement" value="agreed" required>
+                            <label for="indemnificationReinforcement">
+                                <strong>Personal Indemnification Agreement:</strong> I agree to indemnify, defend, and hold harmless ALSAQQAF LOGISTICS LLC from any claims, damages, losses, expenses, or legal fees arising from my negligent or wrongful acts, violations of law, or breaches of this agreement. I accept personal responsibility for my actions and their consequences.
+                            </label>
+                        </div>
+                        <div class="error-message">Indemnification agreement is required</div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finalBindingAgreement" name="finalBindingAgreement" value="agreed" required>
+                            <label for="finalBindingAgreement">
+                                <strong>Final Binding Legal Agreement:</strong> I acknowledge that this application and all associated agreements constitute a binding legal contract. I confirm I have read, understood, and voluntarily accepted all terms. I understand that these agreements are governed by applicable state and federal law and that any invalid provisions do not affect the validity of remaining terms.
+                            </label>
+                        </div>
+                        <div class="error-message">Final binding agreement is required</div>
+                    </div>
+
+                    <!-- Legal Warning Notice -->
+                    <div style="background: #dc3545; color: white; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                        <h4 style="margin-bottom: 15px;">⚖️ FINAL LEGAL NOTICE</h4>
+                        <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+                            <strong>WARNING:</strong> By signing below, you are entering into legally binding agreements that limit your rights and create obligations. You are waiving important legal rights including the right to sue in court and the right to trial by jury. If you do not understand any provision, consult with an attorney before proceeding. Your signature indicates full acceptance of all terms and conditions.
+                        </p>
+                    </div>
+
+                    <!-- Emergency Contact Authorization -->
+                    <h3 style="margin-top: 30px; color: #2c5aa0;">Emergency Contact Authorization</h3>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="emergencyContactAuth" name="emergencyContactAuth" value="authorized" required>
+                        <label for="emergencyContactAuth">
+                            I authorize ALSAQQAF LOGISTICS LLC to contact my emergency contact(s) in case of accident, injury, or other emergency situations involving my employment.
+                        </label>
+                    </div>
+                    <div class="error-message">Emergency contact authorization is required</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="applicantSignature">Full Name (Digital Signature) <span class="required">*</span></label>
+                            <input type="text" id="applicantSignature" name="applicantSignature" required>
+                            <div class="error-message">Digital signature is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signatureDate">Date <span class="required">*</span></label>
+                            <input type="date" id="signatureDate" name="signatureDate" required>
+                            <div class="error-message">Signature date is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Signature Pad -->
+                    <div class="form-group">
+                        <label>Draw Your Signature Below (Optional)</label>
+                        <canvas id="signaturePad"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" class="btn btn-secondary" onclick="clearSignature()">Clear Signature</button>
+                        </div>
+                        <div class="error-message" style="display: none;">Please provide your signature</div>
+                    </div>
+                </div>
+
+                <!-- Step 7: Final Employment Terms & Notice Requirements -->
+                <div class="step-content" data-step="7">
+                    <div style="text-align: center; padding: 20px;">
+                        <h2 style="color: #dc3545; margin-bottom: 30px;">⚠️ MANDATORY EMPLOYMENT TERMS & NOTICE REQUIREMENTS</h2>
+                        
+                        <!-- Major Warning Notice -->
+                        <div style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 40px; border-radius: 15px; margin-bottom: 30px; border: 4px solid #721c24; box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);">
+                            <h2 style="margin: 0 0 20px 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🚨 CRITICAL EMPLOYMENT REQUIREMENT</h2>
+                            <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 10px; margin: 20px 0;">
+                                <h3 style="margin: 0 0 15px 0; font-size: 24px; color: #fff;">TWO WEEK NOTICE REQUIREMENT</h3>
+                                <p style="margin: 0; font-size: 20px; font-weight: bold; line-height: 1.4;">
+                                    "TO LEAVE YOUR EMPLOYMENT WITH ALSAQQAF LOGISTICS LLC, YOU MUST PROVIDE A MINIMUM OF TWO (2) WEEKS WRITTEN NOTICE - NO EXCEPTIONS"
+                                </p>
+                            </div>
+                            <p style="margin: 0; font-size: 16px; opacity: 0.9;">
+                                This requirement is MANDATORY and applies to ALL employees regardless of position, length of service, or circumstances.
+                            </p>
+                        </div>
+
+                        <!-- Detailed Terms Section -->
+                        <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #dc3545;">
+                            <h3 style="color: #dc3545; margin-bottom: 20px; font-size: 24px;">📋 NOTICE REQUIREMENT DETAILS</h3>
+                            
+                            <div style="text-align: left; margin-bottom: 25px;">
+                                <h4 style="color: #721c24; margin-bottom: 15px;">Mandatory Notice Period:</h4>
+                                <ul style="margin-left: 20px; line-height: 1.8; font-size: 16px;">
+                                    <li><strong>Minimum Notice:</strong> 14 calendar days (2 weeks) written notice</li>
+                                    <li><strong>Notice Format:</strong> Must be submitted in writing (email or formal letter)</li>
+                                    <li><strong>Effective Date:</strong> Notice period begins the day after written notice is received</li>
+                                    <li><strong>Working Days:</strong> You must work all scheduled days during the notice period</li>
+                                    <li><strong>No Exceptions:</strong> This applies regardless of personal circumstances, new job offers, or emergencies</li>
+                                </ul>
+                            </div>
+
+                            <div style="text-align: left; margin-bottom: 25px;">
+                                <h4 style="color: #721c24; margin-bottom: 15px;">Consequences of Insufficient Notice:</h4>
+                                <ul style="margin-left: 20px; line-height: 1.8; font-size: 16px;">
+                                    <li><strong>Immediate Forfeiture:</strong> All accrued vacation time, personal time, and bonuses</li>
+                                    <li><strong>Final Pay Withholding:</strong> Company may withhold final paycheck for up to 30 days</li>
+                                    <li><strong>Benefit Termination:</strong> Immediate termination of all company benefits</li>
+                                    <li><strong>Equipment Recovery:</strong> Immediate return of all company property required</li>
+                                    <li><strong>Reference Impact:</strong> Negative impact on employment references and rehire eligibility</li>
+                                    <li><strong>Legal Action:</strong> Company reserves right to pursue legal remedies for breach of contract</li>
+                                </ul>
+                            </div>
+
+                            <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                                <h4 style="color: #856404; margin-bottom: 15px;">⚠️ IMPORTANT REMINDER:</h4>
+                                <p style="color: #856404; margin: 0; font-size: 16px; line-height: 1.6;">
+                                    This two-week notice requirement is a binding condition of employment. Failure to comply will result in the penalties listed above and may affect your professional reputation in the transportation industry.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Signature and Agreement Section -->
+                        <div style="background: #dc3545; color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+                            <h3 style="margin-bottom: 20px; font-size: 24px;">✍️ REQUIRED ACKNOWLEDGMENT & SIGNATURE</h3>
+                            
+                            <div class="checkbox-item" style="background: rgba(255,255,255,0.1); border: 2px solid white; margin-bottom: 20px;">
+                                <input type="checkbox" id="twoWeekNoticeAgreement" name="twoWeekNoticeAgreement" value="agreed" required style="width: 25px; height: 25px;">
+                                <label for="twoWeekNoticeAgreement" style="color: white; font-size: 18px; font-weight: bold; margin-left: 15px;">
+                                    I UNDERSTAND AND AGREE that I MUST provide a minimum of TWO (2) WEEKS WRITTEN NOTICE before leaving my employment with ALSAQQAF LOGISTICS LLC. I acknowledge that this requirement has NO EXCEPTIONS and that failure to comply will result in the penalties described above. I voluntarily accept this binding employment condition.
+                                </label>
+                            </div>
+                            <div class="error-message" style="color: #ffebee;">Two week notice agreement is required to submit application</div>
+                            
+                            <div style="margin-top: 25px;">
+                                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                        <div class="form-group">
+                                            <label for="finalSignatureName" style="color: white; font-size: 16px; font-weight: bold;">Full Legal Name (Digital Signature) <span style="color: #ffebee;">*</span></label>
+                                            <input type="text" id="finalSignatureName" name="finalSignatureName" required style="padding: 12px; font-size: 16px; border: 2px solid white;">
+                                            <div class="error-message" style="color: #ffebee;">Digital signature is required</div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="finalSignatureDate" style="color: white; font-size: 16px; font-weight: bold;">Date <span style="color: #ffebee;">*</span></label>
+                                            <input type="date" id="finalSignatureDate" name="finalSignatureDate" required style="padding: 12px; font-size: 16px; border: 2px solid white;">
+                                            <div class="error-message" style="color: #ffebee;">Signature date is required</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final Submission Notice -->
+                        <div style="background: #28a745; color: white; padding: 25px; border-radius: 12px;">
+                            <h3 style="margin-bottom: 15px; font-size: 20px;">✅ READY FOR SUBMISSION</h3>
+                            <p style="margin: 0; font-size: 16px; line-height: 1.5;">
+                                By completing this final step, you acknowledge that you have read, understood, and agreed to ALL terms and conditions of employment, including the mandatory two-week notice requirement. Your application is now ready for submission.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 9: Completion -->
+                <div class="step-content" data-step="9">
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+                            <h2 style="margin: 0 0 15px 0;">🎉 Application Submitted Successfully!</h2>
+                            <p style="margin: 0; font-size: 18px;">Thank you for completing your driver application with ALSAQQAF LOGISTICS LLC.</p>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
+                            <h3 style="color: #007bff; margin: 0 0 15px 0;">Application Details</h3>
+                            <p><strong>Application ID:</strong> <span id="applicationId">APP-[Generated]</span></p>
+                            <p><strong>Submission Date:</strong> <span id="submissionDate">[Current Date]</span></p>
+                            <p><strong>Status:</strong> <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 15px; font-size: 14px;">Submitted</span></p>
+                        </div>
+                        
+                        <div style="background: #e3f2fd; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
+                            <h3 style="color: #1976d2; margin: 0 0 15px 0;">What Happens Next?</h3>
+                            <div style="text-align: left;">
+                                <p style="margin: 10px 0;"><strong>1. Review Process:</strong> Our team will review your application within 2-3 business days.</p>
+                                <p style="margin: 10px 0;"><strong>2. Background Check:</strong> We will conduct employment verification and background checks.</p>
+                                <p style="margin: 10px 0;"><strong>3. Interview:</strong> Qualified candidates will be contacted for an interview.</p>
+                                <p style="margin: 10px 0;"><strong>4. Decision:</strong> You will be notified of our decision via email or phone.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                            <p style="margin: 0; color: #856404;"><strong>Important:</strong> Please keep your application ID for reference. You may be contacted for additional information or documentation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+<!-- Step 8: Load Rejection Agreement -->
+<div class="step-content" data-step="8">
+    <h2>📦 Load Rejection Policy Agreement</h2>
+    <p style="margin-bottom: 20px;">
+        As a driver for ALSAQQAF LOGISTICS LLC, I understand that rejecting a confirmed load without valid company-approved reasons
+        may result in a <strong>$500 deduction</strong> from my earnings.
+    </p>
+    <div class="checkbox-item">
+        <input type="checkbox" id="loadRejectionPolicy" name="loadRejectionPolicy" value="agreed" required>
+        <label for="loadRejectionPolicy">
+            I have read and agree to the Load Rejection Policy as stated above.
+        </label>
+    </div>
+    <div class="error-message">You must agree to the load rejection policy to continue</div>
+
+    <div class="form-row" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="loadPolicySignature">Full Name (Digital Signature) <span class="required">*</span></label>
+            <input type="text" id="loadPolicySignature" name="loadPolicySignature" required>
+            <div class="error-message">Digital signature is required</div>
+        </div>
+        <div class="form-group">
+            <label for="loadPolicyDate">Date <span class="required">*</span></label>
+            <input type="date" id="loadPolicyDate" name="loadPolicyDate" required>
+            <div class="error-message">Date is required</div>
+        </div>
+    </div>
+</form>
+    </div>
+
+    <script src="driver-app.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const steps = document.querySelectorAll('.step-content');
+    const progressFill = document.getElementById('progressFill');
+    const stepIndicator = document.getElementById('stepIndicator');
+    let currentStep = 0;
+
+    steps.forEach((step, index) => {
+        const indicator = document.createElement('div');
+        indicator.classList.add('step');
+        indicator.innerHTML = `
+            <div class="step-number">${index + 1}</div>
+            <div>Step ${index + 1}</div>
+        `;
+        stepIndicator.appendChild(indicator);
+    });
+
+    const indicators = document.querySelectorAll('.step');
+
+    function showStep(index) {
+        steps.forEach((step, i) => {
+            step.classList.toggle('active', i === index);
+        });
+
+        indicators.forEach((ind, i) => {
+            ind.classList.toggle('active', i === index);
+            ind.classList.toggle('completed', i < index);
+        });
+
+        const progressPercent = ((index + 1) / steps.length) * 100;
+        progressFill.style.width = `${progressPercent}%`;
+
+        document.getElementById('prevBtn').style.display = index === 0 ? 'none' : 'inline-block';
+        document.getElementById('nextBtn').textContent = index === steps.length - 1 ? 'Submit' : 'Next';
+    }
+
+    function nextStep() {
+        // Validate current step before proceeding
+        const activeStep = document.querySelector('.step-content.active');
+        if (activeStep) {
+            const requiredFields = activeStep.querySelectorAll('[required]');
+            let allValid = true;
+            
+            // Clear previous error states
+            requiredFields.forEach(field => {
+                field.classList.remove('input-error');
+                const errorMsg = field.closest('.form-group')?.querySelector('.error-message');
+                if (errorMsg) errorMsg.style.display = 'none';
+            });
+
+            // Check validation
+            requiredFields.forEach(field => {
+                if (!field.checkValidity() || (field.type === 'checkbox' && !field.checked) || 
+                    (field.type === 'radio' && !activeStep.querySelector(`input[name="${field.name}"]:checked`))) {
+                    allValid = false;
+                    field.classList.add('input-error');
+                    const errorMsg = field.closest('.form-group')?.querySelector('.error-message') || 
+                                   field.closest('.checkbox-item')?.querySelector('.error-message');
+                    if (errorMsg) errorMsg.style.display = 'block';
+                }
+            });
+
+            // If validation fails, show alert and return
+            if (!allValid) {
+                alert('⚠️ Please fill in all required fields before continuing.');
+                return;
+            }
+        }
+
+        // Proceed to next step if validation passes
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            // Instead of submitting to server, handle completion for static site
+            handleFormCompletion();
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    }
+
+    const navContainer = document.createElement('div');
+    navContainer.classList.add('navigation');
+    navContainer.innerHTML = `
+        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="prevStep()">Previous</button>
+        <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next</button>
+    `;
+    document.querySelector('.container').appendChild(navContainer);
+
+    window.nextStep = nextStep;
+    window.prevStep = prevStep;
+
+    showStep(currentStep);
+
+    // Form completion handler with localStorage integration
+    function handleFormCompletion() {
+        // Collect all form data
+        const formData = new FormData(document.getElementById('driverApplicationForm'));
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        
+        // Add employment data
+        const employmentElements = document.querySelectorAll('.employment-entry');
+        const employmentHistory = [];
+        employmentElements.forEach(entry => {
+            const employer = entry.querySelector('[name*="employer"]')?.value || '';
+            const position = entry.querySelector('[name*="position"]')?.value || '';
+            const startDate = entry.querySelector('[name*="start_date"]')?.value || '';
+            const endDate = entry.querySelector('[name*="end_date"]')?.value || '';
+            
+            if (employer || position) {
+                employmentHistory.push({ employer, position, startDate, endDate });
+            }
+        });
+        data.employmentHistory = employmentHistory;
+        
+        // Generate unique application ID
+        const appId = 'APP' + Date.now().toString().slice(-6);
+        const applicationData = {
+            id: appId,
+            date: new Date().toISOString().split('T')[0],
+            name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+            email: data.email || '',
+            phone: data.phone || '',
+            cdlClass: data.cdlClass || '',
+            experience: data.drivingExperience || '',
+            status: 'pending',
+            address: `${data.currentAddress || ''}, ${data.currentCity || ''}, ${data.currentState || ''} ${data.currentZip || ''}`.trim(),
+            birthDate: data.dateOfBirth || '',
+            ownerOperator: data.ownerOperator || data.ownerOperatorStep4 || 'No',
+            endorsements: data.endorsements || '',
+            fullData: data
+        };
+        
+        // Save to localStorage for admin dashboard
+        let applications = JSON.parse(localStorage.getItem('driverApplications') || '[]');
+        applications.push(applicationData);
+        localStorage.setItem('driverApplications', JSON.stringify(applications));
+        
+        console.log('Application saved! ID:', appId);
+        console.log('Application data:', applicationData);
+        
+        // Show final completion step
+        currentStep++;
+        showStep(currentStep);
+        
+        // Show success message with application ID
+        setTimeout(() => {
+            alert(`🎉 Application submitted successfully!\n\nYour Application ID: ${appId}\n\nPlease save this ID for your records.`);
+        }, 1000);
+    }
+    
+    window.handleFormCompletion = handleFormCompletion;
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ownerOpRadios = document.querySelectorAll('input[name="ownerOperator"]');
+    const notice = document.getElementById('ownerOperatorNotice');
+    ownerOpRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'yes') {
+                notice.style.display = 'block';
+            } else {
+                notice.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+
+<script>
+// Employment functionality
+let employmentCount = 0;
+
+function addEmploymentEntry() {
+    employmentCount++;
+    const container = document.getElementById('employmentContainer');
+    
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'employment-entry';
+    entryDiv.innerHTML = `
+        <button type="button" class="remove-employment" onclick="removeEmploymentEntry(this)">×</button>
+        
+        <h4 style="margin-bottom: 20px; color: #2c5aa0;">Employment #${employmentCount}</h4>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="employer_${employmentCount}">Employer Name <span class="required">*</span></label>
+                <input type="text" id="employer_${employmentCount}" name="employer_${employmentCount}" required>
+                <div class="error-message">Employer name is required</div>
+            </div>
+            <div class="form-group">
+                <label for="position_${employmentCount}">Position/Job Title <span class="required">*</span></label>
+                <input type="text" id="position_${employmentCount}" name="position_${employmentCount}" required>
+                <div class="error-message">Position is required</div>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="start_date_${employmentCount}">Start Date <span class="required">*</span></label>
+                <input type="date" id="start_date_${employmentCount}" name="start_date_${employmentCount}" required>
+                <div class="error-message">Start date is required</div>
+            </div>
+            <div class="form-group">
+                <label for="end_date_${employmentCount}">End Date <span class="required">*</span></label>
+                <input type="date" id="end_date_${employmentCount}" name="end_date_${employmentCount}" required>
+                <div class="error-message">End date is required</div>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="supervisor_${employmentCount}">Supervisor Name</label>
+                <input type="text" id="supervisor_${employmentCount}" name="supervisor_${employmentCount}">
+            </div>
+            <div class="form-group">
+                <label for="phone_${employmentCount}">Phone Number</label>
+                <input type="tel" id="phone_${employmentCount}" name="phone_${employmentCount}">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="duties_${employmentCount}">Job Duties/Responsibilities</label>
+            <textarea id="duties_${employmentCount}" name="duties_${employmentCount}" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="reason_${employmentCount}">Reason for Leaving</label>
+            <select id="reason_${employmentCount}" name="reason_${employmentCount}">
+                <option value="">Select reason...</option>
+                <option value="better_opportunity">Better Opportunity</option>
+                <option value="career_advancement">Career Advancement</option>
+                <option value="relocation">Relocation</option>
+                <option value="layoff">Layoff/Downsizing</option>
+                <option value="terminated">Terminated</option>
+                <option value="resigned">Resigned</option>
+                <option value="contract_ended">Contract Ended</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+    `;
+    
+    container.appendChild(entryDiv);
+    
+    // Add animation
+    entryDiv.style.opacity = '0';
+    entryDiv.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+        entryDiv.style.transition = 'all 0.3s ease';
+        entryDiv.style.opacity = '1';
+        entryDiv.style.transform = 'translateY(0)';
+    }, 10);
+}
+
+function removeEmploymentEntry(button) {
+    const entry = button.closest('.employment-entry');
+    entry.style.transition = 'all 0.3s ease';
+    entry.style.opacity = '0';
+    entry.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+        entry.remove();
+    }, 300);
+}
+
+// Initialize with one employment entry
+document.addEventListener('DOMContentLoaded', function() {
+    // Add initial employment entry
+    addEmploymentEntry();
+});
+</script>
+
+
+<script>
+(() => {
+  function formToObject(form) {
+    const data = new FormData(form);
+    const obj = {};
+    for (const [k, v] of data.entries()) {
+      // Handle multiple values (like checkboxes) by aggregating into arrays
+      if (obj[k] !== undefined) {
+        if (!Array.isArray(obj[k])) obj[k] = [obj[k]];
+        obj[k].push(v);
+      } else {
+        obj[k] = v;
+      }
+    }
+    return obj;
+  }
+
+  async function submitToServer(payload) {
+    const endpoint = (window.APP_API_BASE || "") + "/api/applications";
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include"
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error("Server error: " + txt);
+    }
+    return await res.json();
+  }
+
+  function attachSubmission() {
+    const form = document.getElementById("driverApplicationForm");
+    if (!form) return;
+    // Avoid duplicate
+    if (form.__wired) return;
+    form.__wired = true;
+
+    // Find or create a final submit button container
+    let nav = document.querySelector(".navigation");
+    if (!nav) {
+      nav = document.createElement("div");
+      nav.className = "navigation";
+      form.parentElement?.appendChild(nav);
+    }
+
+    // A final submit button (if the multi-step already has one, we'll still intercept submit)
+    const finalBtn = document.createElement("button");
+    finalBtn.type = "submit";
+    finalBtn.className = "btn btn-primary";
+    finalBtn.textContent = "Submit Application";
+    nav.appendChild(finalBtn);
+
+    // Message area
+    const msg = document.createElement("div");
+    msg.id = "submitMessage";
+    msg.style.marginLeft = "12px";
+    msg.style.fontWeight = "600";
+    nav.appendChild(msg);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        finalBtn.disabled = true;
+        finalBtn.textContent = "Submitting…";
+        msg.textContent = "";
+
+        const payload = formToObject(form);
+        payload._submittedAt = new Date().toISOString();
+
+        const result = await submitToServer(payload);
+        msg.textContent = "✅ Submitted! Application ID: " + result.id;
+
+        if (result.pdfUrl) {
+          const a = document.createElement("a");
+          a.href = result.pdfUrl;
+          a.textContent = " Download your PDF";
+          a.style.marginLeft = "8px";
+          a.target = "_blank";
+          msg.appendChild(a);
+        }
+
+        // Optionally reset form
+        // form.reset();
+      } catch (err) {
+        console.error(err);
+        msg.textContent = "❌ " + (err?.message || "Submission failed");
+        msg.style.color = "#dc2626";
+      } finally {
+        finalBtn.disabled = false;
+        finalBtn.textContent = "Submit Application";
+      }
+    }, { once: false });
+  }
+
+  // Run after DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attachSubmission);
+  } else {
+    attachSubmission();
+  }
+})();
+</script>
+
+</body>
+</html>
