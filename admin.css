@@ -1,0 +1,21 @@
+:root{--bg:#0f172a;--card:#ffffff;--text:#0f172a;--muted:#6b7280}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;display:flex;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial}
+.sidebar{width:240px;background:var(--bg);color:#fff;display:flex;flex-direction:column;gap:16px;padding:24px 16px;position:sticky;top:0;height:100vh}
+.brand{font-weight:800;line-height:1.2;letter-spacing:.5px}
+.nav-link{display:block;width:100%;text-align:left;background:transparent;border:1px solid rgba(255,255,255,.15);color:#fff;padding:10px 12px;border-radius:10px;margin:6px 0;cursor:pointer}
+.nav-link.active,.nav-link:hover{background:#1e293b}
+.content{flex:1;background:#f5f7fb;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #e5e7eb;background:#fff;position:sticky;top:0;z-index:2}
+.live-dot{width:10px;height:10px;background:#22c55e;border-radius:50%}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:18px}
+.card{background:var(--card);border-radius:14px;box-shadow:0 6px 18px rgba(2,6,23,.06);padding:16px}
+.card-title{font-size:13px;color:var(--muted);margin-bottom:8px}
+.card-value{font-size:32px;font-weight:800;color:var(--text)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 18px 18px}
+.chart-card{background:var(--card);border-radius:14px;box-shadow:0 6px 18px rgba(2,6,23,.06);padding:16px}
+.chart-title{font-size:14px;color:var(--muted);margin-bottom:10px}
+.tab{display:none}.tab.active{display:block}
+.table-wrap{background:#fff;margin:18px;padding:16px;border-radius:14px;box-shadow:0 6px 18px rgba(2,6,23,.06)}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e5e7eb}th{background:#0f172a;color:#fff;position:sticky;top:0}
+.btn{background:#0f172a;color:#fff;border:none;border-radius:8px;padding:8px 10px;cursor:pointer}.btn.secondary{background:#334155}.btn.warn{background:#ef4444}.btn.ghost{background:#64748b}.btn.ok{background:#22c55e}
+#toast{position:fixed;right:20px;bottom:20px;min-width:220px;max-width:360px;background:#0f172a;color:#fff;padding:12px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;box-shadow:0 10px 30px rgba(2,6,23,.3)}#toast.show{opacity:1;transform:translateY(0)}

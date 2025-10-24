@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — ALSAQQAF LOGISTICS LLC</title>
+  <link rel="stylesheet" href="admin.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">ALSAQQAF<br/>LOGISTICS LLC</div>
+    <nav>
+      <button class="nav-link active" data-tab="dashboard">Dashboard</button>
+      <button class="nav-link" data-tab="applications">Applications</button>
+      <button class="nav-link" data-tab="rejected">Rejected Applications</button>
+      <a class="nav-link" href="/login.html">Logout</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <h1>Admin Panel</h1>
+      <div class="live-dot" title="Connected"></div>
+    </header>
+
+    <section id="dashboard" class="tab active">
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Total Applications</div>
+          <div class="card-value" id="stat-total">0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pending</div>
+          <div class="card-value" id="stat-pending">0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Approved</div>
+          <div class="card-value" id="stat-approved">0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">This Month</div>
+          <div class="card-value" id="stat-thisMonth">0</div>
+        </div>
+      </div>
+
+      <div class="charts">
+        <div class="chart-card">
+          <div class="chart-title">Applications Overview</div>
+          <canvas id="barChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Status Breakdown</div>
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="applications" class="tab">
+      <h2>Active & Pending Applications</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Submitted</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apps-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="rejected" class="tab">
+      <h2>Rejected Applications</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Submitted</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rejected-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
