@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import fs from "fs";
@@ -12,30 +11,33 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const ADMIN_USER = process.env.ADMIN_USER || "admin@alsaqqaf";
 const ADMIN_PASS = process.env.ADMIN_PASS || "change_me";
 
-// Allow CORS for driver-site if cross-origin
+// Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || "super-secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 12 } // 12 hours
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "super-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 12 },
+  })
+);
 
+// Paths
 const DATA_FILE = path.join(__dirname, "applications.json");
 const PDF_DIR = path.join(__dirname, "pdf");
 if (!fs.existsSync(PDF_DIR)) fs.mkdirSync(PDF_DIR);
 
+// Helpers
 function readApps() {
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    return JSON.parse(raw || "[]");
+    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8") || "[]");
   } catch {
     return [];
   }
@@ -44,31 +46,30 @@ function writeApps(apps) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(apps, null, 2));
 }
 
-// Auth helpers
+// Auth check
 function requireAuth(req, res, next) {
   if (req.session?.user === ADMIN_USER) return next();
-  return res.status(401).send("Unauthorized");
+  return res.redirect("/login");
 }
 
-// Static assets
-app.use("/public", express.static(path.join(__dirname, "public")));
-app.use("/pdf", express.static(PDF_DIR));
+// Serve all static files (CSS, JS, images, etc.)
+app.use(express.static(__dirname));
 
-// Serve driver app at /
-app.use("/", express.static(path.join(__dirname, "driver-app")));
+// === ROUTES ===
 
-// Serve admin (protected) — redirect to login if not authed
-app.get("/admin", (req, res) => {
-  if (req.session?.user === ADMIN_USER) {
-    res.sendFile(path.join(__dirname, "admin-app", "index.html"));
-  } else {
-    res.redirect("/login.html");
-  }
+// Home (Driver Application)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Simple login (POST /admin/login from login.html)
+// Login page
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "login.html"));
+});
+
+// Login action
 app.post("/admin/login", (req, res) => {
-  const { username, password } = req.body || {};
+  const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) {
     req.session.user = ADMIN_USER;
     return res.redirect("/admin");
@@ -76,102 +77,60 @@ app.post("/admin/login", (req, res) => {
   return res.status(401).send("Invalid credentials");
 });
 
-// API: Create application (public endpoint for driver site)
+// Admin Dashboard (protected)
+app.get("/admin", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+// API: Create Application
 app.post("/api/applications", (req, res) => {
   const payload = req.body || {};
   const id = uuidv4().slice(0, 8);
   const submittedAt = new Date().toISOString();
   const record = { id, status: "pending", submittedAt, ...payload };
-
   const apps = readApps();
   apps.push(record);
   writeApps(apps);
 
-  // Generate PDF
+  // Create PDF
   const pdfPath = path.join(PDF_DIR, `${id}.pdf`);
   const doc = new PDFDocument({ size: "LETTER", margin: 50 });
   const stream = fs.createWriteStream(pdfPath);
   doc.pipe(stream);
 
-  // Header with company name
-  doc
-    .fontSize(20)
-    .fillColor("#0f172a")
-    .text("ALSAQQAF LOGISTICS LLC", { align: "center" })
-    .moveDown(0.3);
-  doc
-    .fontSize(14)
-    .fillColor("#1f2937")
-    .text("Driver Application (Submission Receipt)", { align: "center" })
-    .moveDown(1);
-
-  // Applicant summary
-  function field(label, value) {
-    doc.fontSize(11).fillColor("#111827").text(label + ": ", { continued: true }).fillColor("#374151").text(String(value ?? "—"));
-  }
-
-  const name = [record.firstName, record.lastName].filter(Boolean).join(" ") || record.name || "—";
-  field("Application ID", id);
-  field("Submitted At", new Date(submittedAt).toLocaleString());
-  field("Applicant Name", name);
-  field("Email", record.email);
-  field("Phone", record.phone || record.phoneNumber);
-
-  doc.moveDown(0.5).fontSize(12).text("Selected Fields:", { underline: true }).moveDown(0.3);
-  const keysToShow = ["dateOfBirth","ssn","currentAddress","currentCity","currentState","currentZip","cdlClass","yearsExperience","workSchedule"];
-  keysToShow.forEach(k => {
-    if (record[k] !== undefined) field(k, record[k]);
-  });
-
-  doc.moveDown(1).fontSize(10).fillColor("#6b7280")
-    .text("This PDF is auto-generated. Keep for your records. ALSAQQAF LOGISTICS LLC.", { align: "center" });
-
+  doc.fontSize(18).text("ALSAQQAF LOGISTICS LLC", { align: "center" });
+  doc.moveDown().fontSize(12).text(`Application ID: ${id}`);
+  doc.text(`Submitted At: ${submittedAt}`);
+  doc.text(`Name: ${payload.firstName || ""} ${payload.lastName || ""}`);
+  doc.text(`Email: ${payload.email || ""}`);
   doc.end();
 
-  stream.on("finish", () => {
-    const pdfUrl = `/pdf/${id}.pdf`;
-    res.json({ ok: true, id, pdfUrl });
-  });
+  stream.on("finish", () => res.json({ ok: true, id, pdfUrl: `/pdf/${id}.pdf` }));
 });
 
-// API: list applications (protected)
-app.get("/api/applications", requireAuth, (req, res) => {
-  const apps = readApps();
-  res.json(apps);
-});
+// API: Get all applications
+app.get("/api/applications", requireAuth, (req, res) => res.json(readApps()));
 
-// API: fetch single PDF (protected by static /pdf if needed; keep open for direct link)
-app.get("/api/applications/:id/pdf", requireAuth, (req, res) => {
-  const id = req.params.id;
-  const pdfPath = path.join(PDF_DIR, `${id}.pdf`);
-  if (fs.existsSync(pdfPath)) return res.sendFile(pdfPath);
-  return res.status(404).send("Not found");
-});
-
-// API: basic stats (protected)
+// API: Stats for dashboard
 app.get("/api/stats", requireAuth, (req, res) => {
   const apps = readApps();
   const total = apps.length;
-  const pending = apps.filter(a => (a.status || "pending") === "pending").length;
+  const pending = apps.filter(a => a.status === "pending").length;
   const approved = apps.filter(a => a.status === "approved").length;
-  const activeDrivers = apps.filter(a => a.status === "approved").length;
-
-  // Simple derived metrics
+  const rejected = apps.filter(a => a.status === "rejected").length;
   const now = new Date();
   const thisMonth = apps.filter(a => {
-    const d = new Date(a.submittedAt || a._submittedAt || a.createdAt || 0);
+    const d = new Date(a.submittedAt);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  const approvalRate = total ? Math.round((approved / total) * 100) : 0;
-  const avgProcessingDays = 3; // placeholder until you track status timestamps
-  const conversionRate = approvalRate; // simplistic
-
-  res.json({ total, pending, approved, activeDrivers, thisMonth, approvalRate, avgProcessingDays, conversionRate });
+  res.json({ total, pending, approved, rejected, thisMonth });
 });
 
-// Fallback
+// Serve PDFs
+app.use("/pdf", express.static(PDF_DIR));
+
+// Fallback for undefined routes
 app.use((req, res) => res.status(404).send("Not found"));
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+// Start server
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
