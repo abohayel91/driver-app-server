@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="admin.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
   <aside class="sidebar">
     <div class="brand">ALSAQQAF<br/>LOGISTICS LLC</div>
@@ -14,7 +15,7 @@
       <button class="nav-link active" data-tab="dashboard">Dashboard</button>
       <button class="nav-link" data-tab="applications">Applications</button>
       <button class="nav-link" data-tab="rejected">Rejected Applications</button>
-      <a class="nav-link" href="/login.html">Logout</a>
+      <a class="nav-link" href="login.html">Logout</a>
     </nav>
   </aside>
 
@@ -24,27 +25,24 @@
       <div class="live-dot" title="Connected"></div>
     </header>
 
+    <!-- Dashboard -->
     <section id="dashboard" class="tab active">
-      <div class="top-actions">
-        <button id="downloadAllBtn" class="btn">Download All PDFs</button>
-      </div>
-
       <div class="cards">
-        <div class="card clickable" data-tab-target="applications">
+        <div class="card">
           <div class="card-title">Total Applications</div>
           <div class="card-value" id="stat-total">0</div>
         </div>
-        <div class="card clickable" data-tab-target="applications">
+        <div class="card">
           <div class="card-title">Pending</div>
           <div class="card-value" id="stat-pending">0</div>
         </div>
-        <div class="card clickable" data-tab-target="applications">
+        <div class="card">
           <div class="card-title">Approved</div>
           <div class="card-value" id="stat-approved">0</div>
         </div>
-        <div class="card clickable" data-tab-target="rejected">
-          <div class="card-title">Rejected</div>
-          <div class="card-value" id="stat-rejected">0</div>
+        <div class="card">
+          <div class="card-title">This Month</div>
+          <div class="card-value" id="stat-thisMonth">0</div>
         </div>
       </div>
 
@@ -60,8 +58,12 @@
       </div>
     </section>
 
+    <!-- Applications -->
     <section id="applications" class="tab">
       <h2>Active & Pending Applications</h2>
+      <div class="actions">
+        <button id="downloadAllBtn" class="download-all">Download All PDFs</button>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -74,6 +76,7 @@
       </div>
     </section>
 
+    <!-- Rejected Applications -->
     <section id="rejected" class="tab">
       <h2>Rejected Applications</h2>
       <div class="table-wrap">
@@ -90,6 +93,10 @@
   </main>
 
   <div id="toast"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
 
   <script src="admin.js"></script>
 </body>
