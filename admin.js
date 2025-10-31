@@ -1,157 +1,184 @@
-(() => {
-  const qs  = (s,c=document)=>c.querySelector(s);
-  const qsa = (s,c=document)=>Array.from(c.querySelectorAll(s));
+// admin.js — ALSAQQAF LOGISTICS LLC Admin Panel
+const tabs = document.querySelectorAll('.nav-link');
+const tabSections = document.querySelectorAll('.tab');
+const toast = document.getElementById('toast');
 
-  function toast(msg){
-    let t = qs('#admin-toast');
-    if(!t){
-      t = document.createElement('div');
-      t.id='admin-toast';
-      Object.assign(t.style, {
-        position:'fixed', right:'20px', bottom:'20px', zIndex:9999,
-        background:'#0f172a', color:'#fff', padding:'10px 12px',
-        borderRadius:'10px', boxShadow:'0 10px 30px rgba(2,6,23,.25)',
-        opacity:'0', transform:'translateY(8px)', transition:'all .25s'
-      });
-      document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateY(0)'; });
-    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(8px)'; }, 1600);
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    tabSections.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab)?.classList.add('active');
+  });
+});
+
+// Toast popup
+function showToast(message, type = 'success') {
+  toast.textContent = message;
+  toast.className = `show ${type}`;
+  setTimeout(() => toast.className = toast.className.replace('show', ''), 2500);
+}
+
+// Fetch applications
+async function fetchApplications() {
+  try {
+    const res = await fetch('/api/applications');
+    if (!res.ok) throw new Error('Failed to load data');
+    const data = await res.json();
+    renderApplications(data);
+    updateStats(data);
+  } catch (err) {
+    console.error(err);
+    showToast('Error loading applications', 'error');
   }
+}
 
-  async function j(url, opts={}){
-    const res = await fetch(url, { credentials:'include', ...opts });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    return res.json();
-  }
+// Render Applications
+function renderApplications(apps) {
+  const appsBody = document.getElementById('apps-body');
+  const rejectedBody = document.getElementById('rejected-body');
+  appsBody.innerHTML = '';
+  rejectedBody.innerHTML = '';
 
-  // Detect stat targets (data-stat or keyword)
-  const statTargets = {
-    total:    qs('[data-stat="total"]')    || qsa('*').find(n=>/total/i.test(n.textContent) && n.children.length===0),
-    pending:  qs('[data-stat="pending"]')  || qsa('*').find(n=>/pending/i.test(n.textContent) && n.children.length===0),
-    approved: qs('[data-stat="approved"]') || qsa('*').find(n=>/approved/i.test(n.textContent) && n.children.length===0),
-    rejected: qs('[data-stat="rejected"]') || qsa('*').find(n=>/rejected/i.test(n.textContent) && n.children.length===0),
-  };
-  const setStat = (el, val)=>{ if(el) el.textContent = String(val); };
+  apps.forEach((app, index) => {
+    const row = `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${app.fullName || '—'}</td>
+        <td>${app.email || '—'}</td>
+        <td>${app.status || 'Pending'}</td>
+        <td>${app.date || new Date().toLocaleDateString()}</td>
+        <td>
+          ${app.status === 'Rejected' ? `
+            <button onclick="restoreApplication('${app.id}')">Restore</button>
+          ` : `
+            <button onclick="approveApplication('${app.id}')">Approve</button>
+            <button onclick="rejectApplication('${app.id}')">Reject</button>
+          `}
+          <button onclick="downloadPDF(${JSON.stringify(app)})">Download PDF</button>
+        </td>
+      </tr>
+    `;
 
-  // Use first table for the applications list
-  const table = qs('table') || (()=>{ const t=document.createElement('table'); document.body.appendChild(t); return t; })();
-  const thead = table.tHead || table.createTHead();
-  const tbody = table.tBodies[0] || table.createTBody();
-  if(!thead.rows.length){
-    const tr = thead.insertRow();
-    ['ID','Name','Email','Status','Submitted','Actions'].forEach(h=>{
-      const th = document.createElement('th'); th.textContent = h; tr.appendChild(th);
+    if (app.status === 'Rejected') rejectedBody.innerHTML += row;
+    else appsBody.innerHTML += row;
+  });
+}
+
+// Update Stats
+function updateStats(apps) {
+  const total = apps.length;
+  const pending = apps.filter(a => a.status === 'Pending').length;
+  const approved = apps.filter(a => a.status === 'Approved').length;
+  const month = apps.filter(a => {
+    const d = new Date(a.date);
+    return d.getMonth() === new Date().getMonth();
+  }).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-approved').textContent = approved;
+  document.getElementById('stat-thisMonth').textContent = month;
+
+  renderCharts(total, pending, approved);
+}
+
+// Approve / Reject / Restore
+async function updateStatus(id, status) {
+  try {
+    await fetch(`/api/applications/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ status })
     });
+    showToast(`Application ${status}`);
+    fetchApplications();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to update application', 'error');
   }
+}
 
-  // Add “Download All” if missing
-  let dlAllBtn = qs('#downloadAll') || qs('[data-download-all]');
-  if(!dlAllBtn){
-    dlAllBtn = document.createElement('button');
-    dlAllBtn.id = 'downloadAll';
-    dlAllBtn.textContent = 'Download All';
-    Object.assign(dlAllBtn.style, { margin:'10px 0', background:'#0f172a', color:'#fff', border:'none', borderRadius:'10px', padding:'8px 12px', cursor:'pointer' });
-    table.parentElement?.insertBefore(dlAllBtn, table);
-  }
+function approveApplication(id) { updateStatus(id, 'Approved'); }
+function rejectApplication(id) { updateStatus(id, 'Rejected'); }
+function restoreApplication(id) { updateStatus(id, 'Pending'); }
 
-  function renderRows(apps){
-    while(tbody.firstChild) tbody.removeChild(tbody.firstChild);
-    apps.forEach(a=>{
-      const tr = document.createElement('tr');
-      const name = [a.firstName,a.lastName].filter(Boolean).join(' ') || a.name || '—';
-      const submitted = a.submittedAt ? new Date(a.submittedAt).toLocaleString() : '';
-      tr.innerHTML = `
-        <td>${a.id}</td>
-        <td>${name}</td>
-        <td>${a.email || ''}</td>
-        <td>${a.status || 'pending'}</td>
-        <td>${submitted}</td>
-        <td class="actions">
-          <button data-act="approve" data-id="${a.id}">Approve</button>
-          <button data-act="reject"  data-id="${a.id}">Reject</button>
-          <button data-act="restore" data-id="${a.id}">Restore</button>
-          <button data-act="pdf"     data-id="${a.id}">Download PDF</button>
-        </td>`;
-      tbody.appendChild(tr);
+// Download PDF (single)
+function downloadPDF(app) {
+  const pdfContent = `
+    ALSAQQAF LOGISTICS LLC
+    ------------------------
+    Name: ${app.fullName}
+    Email: ${app.email}
+    Phone: ${app.phone || 'N/A'}
+    Status: ${app.status}
+    Submitted: ${app.date}
+  `;
+  const blob = new Blob([pdfContent], { type: 'application/pdf' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${app.fullName || 'application'}.pdf`;
+  link.click();
+}
+
+// Download All PDFs
+document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/api/applications');
+    const apps = await res.json();
+
+    const zip = new JSZip();
+    apps.forEach(app => {
+      const text = `
+        ALSAQQAF LOGISTICS LLC
+        ------------------------
+        Name: ${app.fullName}
+        Email: ${app.email}
+        Status: ${app.status}
+        Date: ${app.date}
+      `;
+      zip.file(`${app.fullName || 'application'}.pdf`, text);
     });
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = 'applications.zip';
+    link.click();
+  } catch (err) {
+    showToast('Error downloading all PDFs', 'error');
   }
+});
 
-  async function load(){
-    let apps = [];
-    try { apps = await j('/api/applications'); }
-    catch(e){ console.error(e); toast('Please log in at /login'); return; }
+// Charts
+function renderCharts(total, pending, approved) {
+  const barCtx = document.getElementById('barChart');
+  const pieCtx = document.getElementById('pieChart');
 
-    const totals = {
-      total: apps.length,
-      approved: apps.filter(a=>a.status==='approved').length,
-      rejected: apps.filter(a=>a.status==='rejected').length,
-    };
-    totals.pending = totals.total - totals.approved - totals.rejected;
-
-    setStat(statTargets.total, totals.total);
-    setStat(statTargets.pending, totals.pending);
-    setStat(statTargets.approved, totals.approved);
-    setStat(statTargets.rejected, totals.rejected);
-
-    renderRows(apps);
-  }
-
-  document.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('button[data-act]');
-    if(!btn) return;
-    const id = btn.dataset.id;
-    const act = btn.dataset.act;
-
-    if(act==='pdf'){
-      try{
-        const res = await fetch(`/api/applications/${id}/pdf`, { credentials:'include' });
-        if(!res.ok) throw new Error();
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `${id}.pdf`; a.click();
-        URL.revokeObjectURL(url);
-        toast('Downloading PDF…');
-      }catch{ toast('PDF not found'); }
-      return;
-    }
-
-    const statusMap = { approve:'approved', reject:'rejected', restore:'pending' };
-    const status = statusMap[act];
-    if(!status) return;
-
-    try{
-      await fetch(`/api/applications/${id}/status`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify({ status })
-      });
-      toast(status==='approved'?'Approved':status==='rejected'?'Rejected':'Restored');
-      load();
-    }catch{ toast('Update failed'); }
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Total', 'Pending', 'Approved'],
+      datasets: [{
+        data: [total, pending, approved],
+        backgroundColor: ['#2a4db6', '#c7b208', '#1ca36e']
+      }]
+    },
+    options: { plugins: { legend: { display: false } } }
   });
 
-  dlAllBtn.addEventListener('click', async ()=>{
-    try{
-      const apps = await j('/api/applications');
-      if(!apps.length) return toast('No applications yet');
-      for(const a of apps){
-        try{
-          const res = await fetch(`/api/applications/${a.id}/pdf`, { credentials:'include' });
-          if(!res.ok) continue;
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a'); link.href = url; link.download = `${a.id}.pdf`; link.click();
-          URL.revokeObjectURL(url);
-        }catch{}
-      }
-      toast('Downloading all PDFs…');
-    }catch{ toast('Failed to download'); }
+  new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Approved'],
+      datasets: [{
+        data: [pending, approved],
+        backgroundColor: ['#c7b208', '#1ca36e']
+      }]
+    },
+    options: { cutout: '70%' }
   });
+}
 
-  load();
-  setInterval(load, 20000);
-})(); 
-
+// Initialize
+fetchApplications();
