@@ -25,22 +25,26 @@
     </header>
 
     <section id="dashboard" class="tab active">
+      <div class="top-actions">
+        <button id="downloadAllBtn" class="btn">Download All PDFs</button>
+      </div>
+
       <div class="cards">
-        <div class="card">
+        <div class="card clickable" data-tab-target="applications">
           <div class="card-title">Total Applications</div>
           <div class="card-value" id="stat-total">0</div>
         </div>
-        <div class="card">
+        <div class="card clickable" data-tab-target="applications">
           <div class="card-title">Pending</div>
           <div class="card-value" id="stat-pending">0</div>
         </div>
-        <div class="card">
+        <div class="card clickable" data-tab-target="applications">
           <div class="card-title">Approved</div>
           <div class="card-value" id="stat-approved">0</div>
         </div>
-        <div class="card">
-          <div class="card-title">This Month</div>
-          <div class="card-value" id="stat-thisMonth">0</div>
+        <div class="card clickable" data-tab-target="rejected">
+          <div class="card-title">Rejected</div>
+          <div class="card-value" id="stat-rejected">0</div>
         </div>
       </div>
 
