@@ -29,31 +29,43 @@ app.use(
   })
 );
 
-// Paths
-const DATA_FILE = path.join(__dirname, "applications.json");
-const PDF_DIR = path.join(__dirname, "pdf");
+// === SAFE STORAGE PATHS ===
+// ✅ Store outside of /src for Render write permissions
+const DATA_FILE = path.join(process.cwd(), "applications.json");
+const PDF_DIR = path.join(process.cwd(), "pdf");
+
+// Create if missing
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]", "utf8");
 if (!fs.existsSync(PDF_DIR)) fs.mkdirSync(PDF_DIR);
 
-// Helpers
+// === FILE HELPERS ===
 function readApps() {
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8") || "[]");
-  } catch {
+    const data = fs.readFileSync(DATA_FILE, "utf8");
+    return JSON.parse(data || "[]");
+  } catch (err) {
+    console.error("❌ Error reading applications.json:", err);
     return [];
   }
 }
+
 function writeApps(apps) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(apps, null, 2));
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(apps, null, 2));
+  } catch (err) {
+    console.error("❌ Error writing applications.json:", err);
+  }
 }
 
-// Auth check
+// === AUTH CHECK ===
 function requireAuth(req, res, next) {
   if (req.session?.user === ADMIN_USER) return next();
   return res.redirect("/login");
 }
 
-// Serve all static files (CSS, JS, images, etc.)
+// === STATIC FILES ===
 app.use(express.static(__dirname));
+app.use("/pdf", express.static(PDF_DIR));
 
 // === ROUTES ===
 
@@ -62,12 +74,12 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Login page
+// Login Page
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
-// Login action
+// Login Action
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) {
@@ -77,22 +89,29 @@ app.post("/admin/login", (req, res) => {
   return res.status(401).send("Invalid credentials");
 });
 
-// Admin Dashboard (protected)
+// Admin Dashboard
 app.get("/admin", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// API: Create Application
+// === API ROUTES ===
+
+// Create Application (Driver submission)
 app.post("/api/applications", (req, res) => {
   const payload = req.body || {};
+  if (!payload || Object.keys(payload).length === 0) {
+    return res.status(400).json({ ok: false, error: "Empty submission" });
+  }
+
   const id = uuidv4().slice(0, 8);
   const submittedAt = new Date().toISOString();
   const record = { id, status: "pending", submittedAt, ...payload };
+
   const apps = readApps();
   apps.push(record);
   writeApps(apps);
 
-  // Create PDF
+  // Generate PDF confirmation
   const pdfPath = path.join(PDF_DIR, `${id}.pdf`);
   const doc = new PDFDocument({ size: "LETTER", margin: 50 });
   const stream = fs.createWriteStream(pdfPath);
@@ -103,15 +122,22 @@ app.post("/api/applications", (req, res) => {
   doc.text(`Submitted At: ${submittedAt}`);
   doc.text(`Name: ${payload.firstName || ""} ${payload.lastName || ""}`);
   doc.text(`Email: ${payload.email || ""}`);
+  doc.text(`Phone: ${payload.phone || ""}`);
   doc.end();
 
-  stream.on("finish", () => res.json({ ok: true, id, pdfUrl: `/pdf/${id}.pdf` }));
+  stream.on("finish", () =>
+    res.json({ ok: true, id, pdfUrl: `/pdf/${id}.pdf` })
+  );
+
+  console.log("✅ Application saved:", id);
 });
 
-// API: Get all applications
-app.get("/api/applications", requireAuth, (req, res) => res.json(readApps()));
+// Fetch All Applications (Admin)
+app.get("/api/applications", requireAuth, (req, res) => {
+  res.json(readApps());
+});
 
-// API: Stats for dashboard
+// Dashboard Stats
 app.get("/api/stats", requireAuth, (req, res) => {
   const apps = readApps();
   const total = apps.length;
@@ -126,11 +152,11 @@ app.get("/api/stats", requireAuth, (req, res) => {
   res.json({ total, pending, approved, rejected, thisMonth });
 });
 
-// Serve PDFs
-app.use("/pdf", express.static(PDF_DIR));
-
-// Fallback for undefined routes
+// === FALLBACK ===
 app.use((req, res) => res.status(404).send("Not found"));
 
-// Start server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// === START SERVER ===
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Data file path: ${DATA_FILE}`);
+});
