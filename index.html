@@ -2190,6 +2190,26 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 })();
 </script>
+<script>
+document.querySelector("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+
+  const res = await fetch("/api/applications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (res.ok) {
+    alert("Application submitted successfully!");
+    window.location.href = "/thankyou";
+  } else {
+    alert("Something went wrong. Please try again.");
+  }
+});
+</script>
 </body>
 </html>
