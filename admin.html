@@ -26,7 +26,6 @@
     <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
     <button class="tab-btn" data-tab="applications">📁 Applications</button>
     <button class="tab-btn" data-tab="drivers">👥 Active Drivers</button>
-    <button class="tab-btn" data-tab="analytics">📈 Analytics</button>
     <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </nav>
 
@@ -35,10 +34,10 @@
     <section id="dashboard" class="tab-content active">
       <h2>Dashboard Overview</h2>
       <div class="cards">
-        <div class="card"><h3>4</h3><p>Total Applications</p></div>
-        <div class="card"><h3>1</h3><p>Pending Review</p></div>
-        <div class="card"><h3>3</h3><p>Approved</p></div>
-        <div class="card"><h3>2</h3><p>Active Drivers</p></div>
+        <div class="card"><h3 id="totalApps">0</h3><p>Total Applications</p></div>
+        <div class="card"><h3 id="pendingApps">0</h3><p>Pending Review</p></div>
+        <div class="card"><h3 id="approvedApps">0</h3><p>Approved</p></div>
+        <div class="card"><h3 id="rejectedApps">0</h3><p>Rejected</p></div>
       </div>
       <h3>Recent Applications</h3>
       <table>
@@ -60,7 +59,7 @@
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
-        <button id="exportBtn">📥 Download</button>
+        <button id="downloadAllBtn">📥 Download All PDFs</button>
       </div>
       <table>
         <thead>
@@ -85,60 +84,88 @@
       </table>
     </section>
 
-    <!-- ANALYTICS TAB -->
-    <section id="analytics" class="tab-content">
-      <h2>Analytics & Reports</h2>
-      <div class="cards">
-        <div class="card"><h3 id="stat-apps">0</h3><p>This Month’s Applications</p></div>
-        <div class="card"><h3 id="stat-approval">0%</h3><p>Approval Rate</p></div>
-        <div class="card"><h3 id="stat-processing">0</h3><p>Avg. Processing Days</p></div>
-        <div class="card"><h3 id="stat-conversion">0%</h3><p>Conversion Rate</p></div>
-      </div>
-      <div class="reports">
-        <button class="generate-btn">📄 Generate Application Trends Report</button>
-        <button class="generate-btn">📊 Generate Hiring Pipeline Report</button>
-        <button class="generate-btn">🚛 Generate Driver Performance Report</button>
-      </div>
-    </section>
-
     <!-- SETTINGS TAB -->
     <section id="settings" class="tab-content">
       <h2>System Settings</h2>
       <div class="settings-grid">
         <div class="box">
-          <h3>🔒 Security Settings</h3>
-          <label>Admin Password</label>
-          <input type="password" placeholder="Enter new password" />
-          <label>Session Timeout (minutes)</label>
-          <input type="number" value="30" />
-          <button>Update Security</button>
-        </div>
-        <div class="box">
-          <h3>📧 Notification Settings</h3>
-          <label>Email Notifications</label>
-          <select><option>Enabled</option><option>Disabled</option></select>
-          <label>Notification Email</label>
-          <input type="email" placeholder="admin@alsaqqaflogistics.com" />
-          <button>Save Notifications</button>
-        </div>
-        <div class="box">
-          <h3>🏢 Company Settings</h3>
-          <label>Company Name</label>
-          <input type="text" value="ALSAQQAF LOGISTICS LLC" />
-          <label>DOT Number</label>
-          <input type="text" placeholder="Enter DOT number" />
-          <button>Update Company Info</button>
-        </div>
-        <div class="box">
           <h3>💾 Data Management</h3>
-          <button class="green">Export All Data</button>
-          <button class="orange">Backup Database</button>
-          <button class="red">Clear Old Data</button>
+          <button class="green" id="exportAllData">Export All Data</button>
+          <button class="red" id="clearData">Clear Old Data</button>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="admin.js"></script>
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function loadApplications() {
+      try {
+        const res = await fetch(`${API_BASE}/api/applications`, { credentials: 'include' });
+        const apps = await res.json();
+
+        const tbody = document.getElementById("apps-table");
+        const recent = document.getElementById("recent-apps");
+        tbody.innerHTML = "";
+        recent.innerHTML = "";
+
+        let total = apps.length;
+        let pending = apps.filter(a => a.status === "pending").length;
+        let approved = apps.filter(a => a.status === "approved").length;
+        let rejected = apps.filter(a => a.status === "rejected").length;
+
+        document.getElementById("totalApps").textContent = total;
+        document.getElementById("pendingApps").textContent = pending;
+        document.getElementById("approvedApps").textContent = approved;
+        document.getElementById("rejectedApps").textContent = rejected;
+
+        apps.forEach(app => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${app.id}</td>
+            <td>${new Date(app.submittedAt).toLocaleString()}</td>
+            <td>${app.firstName || ""} ${app.lastName || ""}</td>
+            <td>${app.email || ""}</td>
+            <td>${app.phone || ""}</td>
+            <td>${app.cdlClass || ""}</td>
+            <td>${app.yearsExperience || ""}</td>
+            <td>${app.status || "pending"}</td>
+            <td>
+              <a href="${API_BASE}/pdf/${app.id}.pdf" target="_blank">📄 Download</a>
+            </td>
+          `;
+          tbody.appendChild(tr);
+
+          // recent table
+          if (recent.childNodes.length < 5) {
+            const rtr = document.createElement("tr");
+            rtr.innerHTML = `
+              <td>${new Date(app.submittedAt).toLocaleString()}</td>
+              <td>${app.firstName || ""} ${app.lastName || ""}</td>
+              <td>${app.email || ""}</td>
+              <td>${app.status || "pending"}</td>
+              <td><a href="${API_BASE}/pdf/${app.id}.pdf" target="_blank">View</a></td>
+            `;
+            recent.appendChild(rtr);
+          }
+        });
+      } catch (err) {
+        console.error("Error loading applications:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadApplications);
+
+    // Tab switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+  </script>
 </body>
 </html>
