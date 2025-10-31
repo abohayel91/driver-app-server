@@ -1,184 +1,147 @@
-// admin.js — ALSAQQAF LOGISTICS LLC Admin Panel
-const tabs = document.querySelectorAll('.nav-link');
-const tabSections = document.querySelectorAll('.tab');
-const toast = document.getElementById('toast');
+// === ALSAQQAF LOGISTICS LLC ADMIN PANEL ===
+// Connected to https://driver-app-server-k13h.onrender.com
 
+const API_BASE = "https://driver-app-server-k13h.onrender.com/api";
+const tabs = document.querySelectorAll(".tab-btn");
+const sections = document.querySelectorAll(".tab-content");
+
+// === TAB SWITCHING ===
 tabs.forEach(btn => {
-  btn.addEventListener('click', () => {
-    tabs.forEach(b => b.classList.remove('active'));
-    tabSections.forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab)?.classList.add('active');
+  btn.addEventListener("click", () => {
+    tabs.forEach(b => b.classList.remove("active"));
+    sections.forEach(s => s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
   });
 });
 
-// Toast popup
-function showToast(message, type = 'success') {
-  toast.textContent = message;
-  toast.className = `show ${type}`;
-  setTimeout(() => toast.className = toast.className.replace('show', ''), 2500);
-}
-
-// Fetch applications
+// === FETCH APPLICATIONS ===
 async function fetchApplications() {
-  try {
-    const res = await fetch('/api/applications');
-    if (!res.ok) throw new Error('Failed to load data');
-    const data = await res.json();
-    renderApplications(data);
-    updateStats(data);
-  } catch (err) {
-    console.error(err);
-    showToast('Error loading applications', 'error');
-  }
+  const res = await fetch(`${API_BASE}/applications`);
+  const data = await res.json();
+  populateTables(data);
+  updateDashboard(data);
 }
 
-// Render Applications
-function renderApplications(apps) {
-  const appsBody = document.getElementById('apps-body');
-  const rejectedBody = document.getElementById('rejected-body');
-  appsBody.innerHTML = '';
-  rejectedBody.innerHTML = '';
+function updateDashboard(apps) {
+  const total = apps.length;
+  const pending = apps.filter(a => a.status === "pending").length;
+  const approved = apps.filter(a => a.status === "approved").length;
+  const active = apps.filter(a => a.status === "approved").length;
 
-  apps.forEach((app, index) => {
-    const row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${app.fullName || '—'}</td>
-        <td>${app.email || '—'}</td>
-        <td>${app.status || 'Pending'}</td>
-        <td>${app.date || new Date().toLocaleDateString()}</td>
-        <td>
-          ${app.status === 'Rejected' ? `
-            <button onclick="restoreApplication('${app.id}')">Restore</button>
-          ` : `
-            <button onclick="approveApplication('${app.id}')">Approve</button>
-            <button onclick="rejectApplication('${app.id}')">Reject</button>
-          `}
-          <button onclick="downloadPDF(${JSON.stringify(app)})">Download PDF</button>
-        </td>
-      </tr>
+  document.querySelector("#dashboard .cards .card:nth-child(1) h3").textContent = total;
+  document.querySelector("#dashboard .cards .card:nth-child(2) h3").textContent = pending;
+  document.querySelector("#dashboard .cards .card:nth-child(3) h3").textContent = approved;
+  document.querySelector("#dashboard .cards .card:nth-child(4) h3").textContent = active;
+
+  const recent = apps.slice(-5).reverse();
+  const tbody = document.getElementById("recent-apps");
+  tbody.innerHTML = "";
+  recent.forEach(a => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date(a.submittedAt).toLocaleDateString()}</td>
+      <td>${a.name || a.fullName || `${a.firstName || ""} ${a.lastName || ""}`}</td>
+      <td>${a.email}</td>
+      <td>${a.status}</td>
+      <td><button class="view-btn" data-id="${a.id}">View</button></td>
     `;
-
-    if (app.status === 'Rejected') rejectedBody.innerHTML += row;
-    else appsBody.innerHTML += row;
+    tbody.appendChild(row);
   });
 }
 
-// Update Stats
-function updateStats(apps) {
-  const total = apps.length;
-  const pending = apps.filter(a => a.status === 'Pending').length;
-  const approved = apps.filter(a => a.status === 'Approved').length;
-  const month = apps.filter(a => {
-    const d = new Date(a.date);
-    return d.getMonth() === new Date().getMonth();
-  }).length;
+// === POPULATE TABLES ===
+function populateTables(apps) {
+  const appsBody = document.getElementById("apps-table");
+  appsBody.innerHTML = "";
 
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-pending').textContent = pending;
-  document.getElementById('stat-approved').textContent = approved;
-  document.getElementById('stat-thisMonth').textContent = month;
-
-  renderCharts(total, pending, approved);
+  apps.forEach(a => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${a.id}</td>
+      <td>${new Date(a.submittedAt).toLocaleDateString()}</td>
+      <td>${a.name || a.fullName || `${a.firstName || ""} ${a.lastName || ""}`}</td>
+      <td>${a.email}</td>
+      <td>${a.phone || "—"}</td>
+      <td>${a.cdlClass || "—"}</td>
+      <td>${a.yearsExperience || "—"}</td>
+      <td>${a.status}</td>
+      <td>
+        <button class="outline-btn view" data-id="${a.id}">View</button>
+        ${a.status === "pending" ? `
+          <button class="outline-btn approve" data-id="${a.id}">Approve</button>
+          <button class="outline-btn reject" data-id="${a.id}">Reject</button>
+        ` : ""}
+        ${a.status === "rejected" ? `
+          <button class="outline-btn restore" data-id="${a.id}">Restore</button>
+        ` : ""}
+      </td>
+    `;
+    appsBody.appendChild(row);
+  });
 }
 
-// Approve / Reject / Restore
-async function updateStatus(id, status) {
-  try {
-    await fetch(`/api/applications/${id}`, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ status })
-    });
-    showToast(`Application ${status}`);
-    fetchApplications();
-  } catch (err) {
-    console.error(err);
-    showToast('Failed to update application', 'error');
-  }
-}
-
-function approveApplication(id) { updateStatus(id, 'Approved'); }
-function rejectApplication(id) { updateStatus(id, 'Rejected'); }
-function restoreApplication(id) { updateStatus(id, 'Pending'); }
-
-// Download PDF (single)
-function downloadPDF(app) {
-  const pdfContent = `
-    ALSAQQAF LOGISTICS LLC
-    ------------------------
-    Name: ${app.fullName}
-    Email: ${app.email}
-    Phone: ${app.phone || 'N/A'}
-    Status: ${app.status}
-    Submitted: ${app.date}
-  `;
-  const blob = new Blob([pdfContent], { type: 'application/pdf' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${app.fullName || 'application'}.pdf`;
+// === DOWNLOAD APPLICATION AS PDF ===
+async function downloadApplication(id) {
+  const link = document.createElement("a");
+  link.href = `${API_BASE}/applications/${id}/pdf`;
+  link.download = `application-${id}.pdf`;
+  document.body.appendChild(link);
   link.click();
+  link.remove();
 }
 
-// Download All PDFs
-document.getElementById('downloadAllBtn').addEventListener('click', async () => {
-  try {
-    const res = await fetch('/api/applications');
-    const apps = await res.json();
-
-    const zip = new JSZip();
-    apps.forEach(app => {
-      const text = `
-        ALSAQQAF LOGISTICS LLC
-        ------------------------
-        Name: ${app.fullName}
-        Email: ${app.email}
-        Status: ${app.status}
-        Date: ${app.date}
-      `;
-      zip.file(`${app.fullName || 'application'}.pdf`, text);
-    });
-
-    const content = await zip.generateAsync({ type: 'blob' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(content);
-    link.download = 'applications.zip';
-    link.click();
-  } catch (err) {
-    showToast('Error downloading all PDFs', 'error');
+// === ACTION HANDLERS ===
+document.body.addEventListener("click", async e => {
+  if (e.target.classList.contains("approve")) {
+    const id = e.target.dataset.id;
+    await updateStatus(id, "approved");
+    fetchApplications();
+  }
+  if (e.target.classList.contains("reject")) {
+    const id = e.target.dataset.id;
+    await updateStatus(id, "rejected");
+    fetchApplications();
+  }
+  if (e.target.classList.contains("restore")) {
+    const id = e.target.dataset.id;
+    await updateStatus(id, "pending");
+    fetchApplications();
+  }
+  if (e.target.classList.contains("view")) {
+    const id = e.target.dataset.id;
+    downloadApplication(id);
   }
 });
 
-// Charts
-function renderCharts(total, pending, approved) {
-  const barCtx = document.getElementById('barChart');
-  const pieCtx = document.getElementById('pieChart');
-
-  new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Total', 'Pending', 'Approved'],
-      datasets: [{
-        data: [total, pending, approved],
-        backgroundColor: ['#2a4db6', '#c7b208', '#1ca36e']
-      }]
-    },
-    options: { plugins: { legend: { display: false } } }
-  });
-
-  new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Pending', 'Approved'],
-      datasets: [{
-        data: [pending, approved],
-        backgroundColor: ['#c7b208', '#1ca36e']
-      }]
-    },
-    options: { cutout: '70%' }
+// === UPDATE STATUS API ===
+async function updateStatus(id, status) {
+  const res = await fetch(`${API_BASE}/applications`);
+  const apps = await res.json();
+  const updated = apps.map(a => a.id === id ? { ...a, status } : a);
+  await fetch(`${API_BASE}/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updated)
   });
 }
 
-// Initialize
+// === EXPORT BUTTON ===
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const table = document.getElementById("apps-table");
+  const csv = [];
+  const rows = table.querySelectorAll("tr");
+  rows.forEach(row => {
+    const cols = row.querySelectorAll("th, td");
+    const rowData = Array.from(cols).map(c => `"${c.innerText}"`);
+    csv.push(rowData.join(","));
+  });
+  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "applications.csv";
+  a.click();
+});
+
+// === INIT ===
 fetchApplications();
