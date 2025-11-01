@@ -6,6 +6,7 @@ import session from "express-session";
 import PDFDocument from "pdfkit";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
+if (!fs.existsSync("/data")) fs.mkdirSync("/data");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,7 @@ app.use(
 
 // === SAFE STORAGE PATHS ===
 // ✅ Store outside of /src for Render write permissions
-const DATA_FILE = path.join(process.cwd(), "applications.json");
+const DATA_FILE = process.env.DATA_FILE || "/data/applications.json";
 const PDF_DIR = path.join(process.cwd(), "pdf");
 
 // Create if missing
